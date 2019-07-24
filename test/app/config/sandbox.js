@@ -1,24 +1,22 @@
 'use strict';
 
 var contextPath = '/example';
-var accessTokenObject = 'tokenify';
+var accessTokenObjectName = 'ACCESS_TOKEN';
 
 module.exports = {
   application: {
     contextPath: contextPath,
-    accessTokenObject: accessTokenObject
+    accessTokenObjectName: accessTokenObjectName
   },
   plugins: {
     appRestguard: {
       contextPath: contextPath,
-      accessTokenObject: accessTokenObject,
-      jwt: {
-        protectedPaths: [
-          contextPath + '/jwt/session-info',
-          contextPath + '/jwt/authorized*'
-        ],
-        secretKey: 'dobietday'
-      },
+      accessTokenObjectName: accessTokenObjectName,
+      protectedPaths: [
+        contextPath + '/jwt/session-info',
+        contextPath + '/jwt/authorized*',
+      ],
+      secretKey: 'dobietday',
     },
     appTracelog: {
       tracingPaths: [ contextPath ],

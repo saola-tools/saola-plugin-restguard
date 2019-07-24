@@ -10,7 +10,7 @@ function Handler(params = {}) {
   const L = params.loggingFactory.getLogger();
   const T = params.loggingFactory.getTracer();
 
-  const jwtCfg = lodash.get(sandboxConfig, ['jwt'], {});
+  const jwtCfg = sandboxConfig || {};
 
   this.defineAccessTokenMiddleware = function () {
     const self = this;
@@ -35,8 +35,7 @@ function Handler(params = {}) {
     L.has('silly') && L.log('silly', T.add({ requestId }).toMessage({
       tmpl: 'Req[${requestId}] - check header/url-params/post-body for JWT token'
     }));
-    let reqHeaders = req.headers || {}, reqParams = req.params || {}, reqBody = req.body || {};
-    let token = reqHeaders[jwtCfg.tokenHeaderName] || reqParams[jwtCfg.tokenQueryName] || reqBody[jwtCfg.tokenQueryName];
+    let token = req.get(jwtCfg.accessTokenHeaderName) || req.param(jwtCfg.accessTokenParamsName);
     if (token) {
       L.has('debug') && L.log('debug', 'Req[%s] JWT token found: [%s]', requestId, token);
       let tokenOpts = {
@@ -49,10 +48,13 @@ function Handler(params = {}) {
         jwt.verify(token, jwtCfg.secretKey, tokenOpts, function (err, decoded) {
           if (err) {
             L.has('debug') && L.log('debug', 'Req[%s] - Verification failed, error: %s', requestId, JSON.stringify(err));
+            if (err.name === 'TokenExpiredError') {
+              return reject(new Error('access-token is expired'));
+            }
             return reject(new Error('access-token is invalid'));
           } else {
             L.has('debug') && L.log('debug', 'Req[%s] - Verification success, token: %s', requestId, JSON.stringify(decoded));
-            req[sandboxConfig.accessTokenObject] = decoded;
+            req[sandboxConfig.accessTokenObjectName] = decoded;
             return resolve(decoded);
           }
         });

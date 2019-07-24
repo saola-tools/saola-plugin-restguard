@@ -21,8 +21,8 @@ function Example(params) {
     res.json({ status: 200, message: 'authorized' });
   });
   router_jwt.route('/session-info').get(function(req, res, next) {
-    if (lodash.isObject(req[pluginCfg.accessTokenObject])) {
-      res.json(req[pluginCfg.accessTokenObject]);
+    if (lodash.isObject(req[pluginCfg.accessTokenObjectName])) {
+      res.json(req[pluginCfg.accessTokenObjectName]);
     } else {
       res.status(404).json({});
     }

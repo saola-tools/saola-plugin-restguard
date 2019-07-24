@@ -3,14 +3,11 @@ module.exports = {
     appRestguard: {
       enabled: true,
       contextPath: '/restguard',
-      accessTokenObject: 'tokenify',
-      jwt: {
-        tokenHeaderName: 'x-access-token',
-        tokenQueryName: 'token',
-        expiresIn: 86400,
-        ignoreExpiration: false,
-        secretKey: 'changeme'
-      }
+      accessTokenObjectName: 'accessToken',
+      accessTokenHeaderName: 'x-access-token',
+      accessTokenParamsName: 'token',
+      ignoreExpiration: false,
+      secretKey: 'changeme'
     }
   }
 };
