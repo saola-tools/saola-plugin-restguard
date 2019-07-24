@@ -9,5 +9,5 @@
 ```shell
 export LOGOLITE_DEBUGLOG_ENABLED=true
 export DEBUG=devebot*,app*
-npm run build && DEVEBOT_SANDBOX=backward node test/app
+npm run build && node test/app
 ```

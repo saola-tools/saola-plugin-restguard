@@ -2,11 +2,12 @@
 
 var Devebot = require('devebot');
 var lodash = Devebot.require('lodash');
-var debug = Devebot.require('pinbug');
-var debuglog = debug('example:app-restguard:example');
 
 function Example(params) {
   params = params || {};
+
+  const L = params.loggingFactory.getLogger();
+  const T = params.loggingFactory.getTracer();
 
   var restguardService = params.restguardService;
   var express = params.webweaverService.express;
@@ -17,7 +18,7 @@ function Example(params) {
 
   var router_jwt = express.Router();
   router_jwt.route('/authorized').get(function(req, res, next) {
-    debuglog.enabled && debuglog(' - request /jwt/authorized ...');
+    L.has('silly') && L.log('silly', ' - request /jwt/authorized ...');
     res.json({ status: 200, message: 'authorized' });
   });
   router_jwt.route('/session-info').get(function(req, res, next) {
@@ -28,7 +29,7 @@ function Example(params) {
     }
   });
   router_jwt.route('/*').get(function(req, res, next) {
-    debuglog.enabled && debuglog(' - request /jwt public resources ...');
+    L.has('silly') && L.log('silly', ' - request /jwt public resources ...');
     res.json({ status: 200, message: 'public' });
   });
   layers.push({
