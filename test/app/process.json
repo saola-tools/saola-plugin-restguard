@@ -1,0 +1,10 @@
+{
+  "apps": [{
+    "name": "app-restguard-demo",
+    "script": "test/app",
+    "watch": true,
+    "env_debug": {
+      "DEBUG": "devebot*,app*"
+    }
+  }]
+}
