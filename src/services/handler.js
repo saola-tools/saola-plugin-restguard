@@ -2,7 +2,6 @@
 
 const Devebot = require('devebot');
 const Promise = Devebot.require('bluebird');
-const lodash = Devebot.require('lodash');
 const jwt = require('jsonwebtoken');
 
 function Handler(params = {}) {
@@ -16,7 +15,7 @@ function Handler(params = {}) {
     const self = this;
     return function (req, res, next) {
       const requestId = tracelogService.getRequestId(req);
-      return self.verifyAccessToken(req)
+      return self.verifyAccessToken(req, { promiseEnabled: true })
       .then(function () {
         L.has('debug') && L.log('debug', 'Req[%s] - verification passed', requestId);
         next();
@@ -30,7 +29,19 @@ function Handler(params = {}) {
     }
   }
 
-  this.verifyAccessToken = function (req) {
+  this.verifyAccessToken = function (req, { promiseEnabled }) {
+    const result = verifyAccessToken(req);
+    if (promiseEnabled) {
+      if (result.error) {
+        return Promise.reject(result.error);
+      }
+      return Promise.resolve(result.token);
+    } else {
+      return result;
+    }
+  }
+
+  const verifyAccessToken = function (req) {
     const requestId = tracelogService.getRequestId(req);
     L.has('silly') && L.log('silly', T.add({ requestId }).toMessage({
       tmpl: 'Req[${requestId}] - check header/url-params/post-body for JWT token'
@@ -44,24 +55,21 @@ function Handler(params = {}) {
       L.has('debug') && L.log('debug', T.add({ requestId, tokenOpts }).toMessage({
         tmpl: 'Req[${requestId}] - Call jwt.verify() with options: ${tokenOpts}'
       }));
-      return new Promise(function (resolve, reject) {
-        jwt.verify(token, jwtCfg.secretKey, tokenOpts, function (err, decoded) {
-          if (err) {
-            L.has('debug') && L.log('debug', 'Req[%s] - Verification failed, error: %s', requestId, JSON.stringify(err));
-            if (err.name === 'TokenExpiredError') {
-              return reject(new Error('access-token is expired'));
-            }
-            return reject(new Error('access-token is invalid'));
-          } else {
-            L.has('debug') && L.log('debug', 'Req[%s] - Verification success, token: %s', requestId, JSON.stringify(decoded));
-            req[sandboxConfig.accessTokenObjectName] = decoded;
-            return resolve(decoded);
-          }
-        });
-      });
+      try {
+        const tokenObject = jwt.verify(token, jwtCfg.secretKey, tokenOpts);
+        L.has('debug') && L.log('debug', 'Req[%s] - Verification success, token: %s', requestId, JSON.stringify(decoded));
+        req[sandboxConfig.accessTokenObjectName] = tokenObject;
+        return { token: tokenObject };
+      } catch (err) {
+        L.has('debug') && L.log('debug', 'Req[%s] - Verification failed, error: %s', requestId, JSON.stringify(err));
+        if (err.name === 'TokenExpiredError') {
+          return { error: new Error('access-token is expired') };
+        }
+        return { error: new Error('access-token is invalid') };
+      }
     } else {
       L.has('debug') && L.log('debug', 'Req[%s] - JWT token not found', requestId);
-      return Promise.reject(new Error('access-token not found'));
+      return { error: new Error('access-token not found') };
     }
   }
 }
