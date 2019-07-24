@@ -17,11 +17,15 @@ function Handler(params = {}) {
       const requestId = tracelogService.getRequestId(req);
       return self.verifyAccessToken(req, { promiseEnabled: true })
       .then(function () {
-        L.has('debug') && L.log('debug', 'Req[%s] - verification passed', requestId);
+        L.has('debug') && L.log('debug', T.add({ requestId }).toMessage({
+          tmpl: 'Req[${requestId}] - verification passed'
+        }));
         next();
       })
       .catch(function (err) {
-        L.has('debug') && L.log('debug', 'Req[%s] - verification failed, return 403', requestId);
+        L.has('debug') && L.log('debug', T.add({ requestId }).toMessage({
+          tmpl: 'Req[${requestId}] - verification failed, return 403'
+        }));
         res.status(403).send({
           message: err.message || 'access-token not found or invalid'
         });
@@ -44,11 +48,13 @@ function Handler(params = {}) {
   const verifyAccessToken = function (req) {
     const requestId = tracelogService.getRequestId(req);
     L.has('silly') && L.log('silly', T.add({ requestId }).toMessage({
-      tmpl: 'Req[${requestId}] - check header/url-params/post-body for JWT token'
+      tmpl: 'Req[${requestId}] - check header/url-params/post-body for access-token'
     }));
     let token = req.get(jwtCfg.accessTokenHeaderName) || req.param(jwtCfg.accessTokenParamsName);
     if (token) {
-      L.has('debug') && L.log('debug', 'Req[%s] JWT token found: [%s]', requestId, token);
+      L.has('debug') && L.log('debug', T.add({ requestId, token }).toMessage({
+        tmpl: 'Req[${requestId}] - access-token found: [${token}]'
+      }));
       let tokenOpts = {
         ignoreExpiration: jwtCfg.ignoreExpiration || false
       };
@@ -57,18 +63,24 @@ function Handler(params = {}) {
       }));
       try {
         const tokenObject = jwt.verify(token, jwtCfg.secretKey, tokenOpts);
-        L.has('debug') && L.log('debug', 'Req[%s] - Verification success, token: %s', requestId, JSON.stringify(decoded));
+        L.has('debug') && L.log('debug', T.add({ requestId, tokenObject }).toMessage({
+          tmpl: 'Req[${requestId}] - Verification success, token: ${tokenObject}'
+        }));
         req[sandboxConfig.accessTokenObjectName] = tokenObject;
         return { token: tokenObject };
-      } catch (err) {
-        L.has('debug') && L.log('debug', 'Req[%s] - Verification failed, error: %s', requestId, JSON.stringify(err));
-        if (err.name === 'TokenExpiredError') {
+      } catch (error) {
+        L.has('error') && L.log('error', T.add({ requestId, error }).toMessage({
+          tmpl: 'Req[${requestId}] - Verification failed, error: ${error}'
+        }));
+        if (error.name === 'TokenExpiredError') {
           return { error: new Error('access-token is expired') };
         }
         return { error: new Error('access-token is invalid') };
       }
     } else {
-      L.has('debug') && L.log('debug', 'Req[%s] - JWT token not found', requestId);
+      L.has('debug') && L.log('debug', T.add({ requestId }).toMessage({
+        tmpl: 'Req[${requestId}] - access-token not found'
+      }));
       return { error: new Error('access-token not found') };
     }
   }
@@ -79,8 +91,3 @@ Handler.referenceHash = {
 };
 
 module.exports = Handler;
-
-function tripBearer(bearerHeader) {
-  if (typeof(bearerHeader) !== 'string') return bearerHeader;
-  return bearerHeader.replace("Bearer", "").trim();
-}
