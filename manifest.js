@@ -1,6 +1,14 @@
+'use strict';
+
+var lodash = Devebot.require('lodash');
+
 module.exports = {
   "config": {
     "validation": {
+      "checkConstraints": function (cfg) {
+        var secretKey = lodash.get(cfg, ['plugins', 'appRestguard', 'secretKey']);
+        return secretKey !== 'changeme';
+      },
       "schema": {
         "type": "object",
         "properties": {
