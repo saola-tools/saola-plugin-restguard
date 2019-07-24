@@ -17,15 +17,9 @@ function Handler(params = {}) {
       const requestId = tracelogService.getRequestId(req);
       return self.verifyAccessToken(req, { promiseEnabled: true })
       .then(function () {
-        L.has('debug') && L.log('debug', T.add({ requestId }).toMessage({
-          tmpl: 'Req[${requestId}] - verification passed'
-        }));
         next();
       })
       .catch(function (err) {
-        L.has('debug') && L.log('debug', T.add({ requestId }).toMessage({
-          tmpl: 'Req[${requestId}] - verification failed, return 403'
-        }));
         res.status(403).send({
           message: err.message || 'access-token not found or invalid'
         });
@@ -64,12 +58,12 @@ function Handler(params = {}) {
       try {
         const tokenObject = jwt.verify(token, jwtCfg.secretKey, tokenOpts);
         L.has('debug') && L.log('debug', T.add({ requestId, tokenObject }).toMessage({
-          tmpl: 'Req[${requestId}] - Verification success, token: ${tokenObject}'
+          tmpl: 'Req[${requestId}] - Verification passed, token: ${tokenObject}'
         }));
         req[sandboxConfig.accessTokenObjectName] = tokenObject;
         return { token: tokenObject };
       } catch (error) {
-        L.has('error') && L.log('error', T.add({ requestId, error }).toMessage({
+        L.has('debug') && L.log('debug', T.add({ requestId, error }).toMessage({
           tmpl: 'Req[${requestId}] - Verification failed, error: ${error}'
         }));
         if (error.name === 'TokenExpiredError') {
