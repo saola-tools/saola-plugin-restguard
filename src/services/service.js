@@ -14,7 +14,9 @@ function Service(params = {}) {
 
   this.buildAccessTokenLayer = function(branches) {
     const middleware = new express();
-    middleware.use(jwtCfg.protectedPaths, restguardHandler.defineAccessTokenMiddleware());
+    if (lodash.isArray(jwtCfg.protectedPaths)) {
+      middleware.use(jwtCfg.protectedPaths, restguardHandler.defineAccessTokenMiddleware());
+    }
     return {
       name: 'app-restguard-checker',
       middleware: middleware,
