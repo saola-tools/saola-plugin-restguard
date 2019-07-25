@@ -2,6 +2,7 @@
 
 const Devebot = require('devebot');
 const Promise = Devebot.require('bluebird');
+const lodash = Devebot.require('lodash');
 const jwt = require('jsonwebtoken');
 
 function Handler(params = {}) {
@@ -58,20 +59,29 @@ function Handler(params = {}) {
         tmpl: 'Req[${requestId}] - Call jwt.verify() with options: ${tokenOpts}'
       }));
       try {
-        const tokenObject = jwt.verify(token, jwtCfg.secretKey, tokenOpts);
+        let tokenObject = jwt.verify(token, jwtCfg.secretKey, tokenOpts);
         L.has('debug') && L.log('debug', T.add({ requestId, tokenObject }).toMessage({
           tmpl: 'Req[${requestId}] - Verification passed, token: ${tokenObject}'
         }));
+        if (lodash.isFunction(sandboxConfig.accessTokenTransform)) {
+          tokenObject = sandboxConfig.accessTokenTransform(tokenObject);
+        }
         req[sandboxConfig.accessTokenObjectName] = tokenObject;
         return { token: tokenObject };
       } catch (error) {
-        L.has('debug') && L.log('debug', T.add({ requestId, error }).toMessage({
+        L.has('debug') && L.log('debug', T.add({
+          requestId,
+          error: { name: error.name, message: error.message }
+        }).toMessage({
           tmpl: 'Req[${requestId}] - Verification failed, error: ${error}'
         }));
         if (error.name === 'TokenExpiredError') {
           return { error: new Error('access-token is expired') };
         }
-        return { error: new Error('access-token is invalid') };
+        if (error.name === 'JsonWebTokenError') {
+          return { error: new Error('access-token is invalid') };
+        }
+        return { error: new Error('jwt.verify() unknown error') };
       }
     } else {
       L.has('debug') && L.log('debug', T.add({ requestId }).toMessage({

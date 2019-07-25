@@ -1,5 +1,7 @@
 'use strict';
 
+var devebot = require('devebot');
+var chores = require('../../../lib/utils/chores.js');
 var contextPath = '/example';
 var accessTokenObjectName = 'ACCESS_TOKEN';
 
@@ -13,6 +15,11 @@ module.exports = {
       enabled: true,
       contextPath: contextPath,
       accessTokenObjectName: accessTokenObjectName,
+      accessTokenTransform: function (data) {
+        return chores.renameJsonFields(data, {
+          "holderId": "commissionerId"
+        });
+      },
       protectedPaths: [
         contextPath + '/jwt/session-info',
         contextPath + '/jwt/authorized*',

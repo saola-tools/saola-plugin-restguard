@@ -18,6 +18,8 @@ module.exports = {
           "contextPath": {
             "type": "string"
           },
+          "accessTokenTransform": {
+          },
           "accessTokenObjectName": {
             "type": "string"
           },
