@@ -36,6 +36,12 @@ module.exports = {
           "protectedPaths": {
             "type": "array"
           },
+          "autowired": {
+            "type": "boolean"
+          },
+          "priority": {
+            "type": "number"
+          },
         },
         "additionalProperties": false
       }

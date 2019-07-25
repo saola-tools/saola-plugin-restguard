@@ -14,7 +14,9 @@ function Handler(params = {}) {
   this.defineAccessTokenMiddleware = function () {
     const self = this;
     return function (req, res, next) {
-      const requestId = tracelogService.getRequestId(req);
+      if (sandboxConfig.enabled === false) {
+        return next();
+      }
       return self.verifyAccessToken(req, { promiseEnabled: true })
       .then(function () {
         next();

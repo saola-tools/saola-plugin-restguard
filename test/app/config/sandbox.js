@@ -10,6 +10,7 @@ module.exports = {
   },
   plugins: {
     appRestguard: {
+      enabled: true,
       contextPath: contextPath,
       accessTokenObjectName: accessTokenObjectName,
       protectedPaths: [
@@ -21,6 +22,9 @@ module.exports = {
     appTracelog: {
       tracingPaths: [ contextPath ],
       tracingBoundaryEnabled: true
+    },
+    appWebserver: {
+      port: 7878
     }
   }
 };
