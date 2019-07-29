@@ -7,7 +7,29 @@ module.exports = {
       accessTokenHeaderName: 'x-access-token',
       accessTokenParamsName: 'token',
       ignoreExpiration: false,
-      secretKey: 'changeme'
+      secretKey: 'changeme',
+      errorCodes: {
+        TokenExpiredError: {
+          message: 'access-token is expired',
+          returnCode: 1001,
+          statusCode: 401
+        },
+        JsonWebTokenError: {
+          message: 'access-token is invalid',
+          returnCode: 1002,
+          statusCode: 401
+        },
+        JwtVerifyUnknownError: {
+          message: 'jwt.verify() unknown error',
+          returnCode: 1003,
+          statusCode: 401
+        },
+        TokenNotFoundError: {
+          message: 'access-token not found',
+          returnCode: 1004,
+          statusCode: 401
+        },
+      }
     }
   }
 };

@@ -7,19 +7,18 @@ function Service(params = {}) {
   const { sandboxConfig, restguardHandler, webweaverService } = params;
   const express = webweaverService.express;
 
-  const jwtCfg = sandboxConfig || {};
-
   const L = params.loggingFactory.getLogger();
   const T = params.loggingFactory.getTracer();
 
+  let protectedPaths = lodash.get(sandboxConfig, ['protectedPaths']);
+  if (lodash.isString(protectedPaths)) protectedPaths = [ protectedPaths ];
+  if (!lodash.isArray(protectedPaths)) protectedPaths = [];
+
   this.buildAccessTokenLayer = function(branches) {
-    const middleware = new express();
-    if (lodash.isArray(jwtCfg.protectedPaths)) {
-      middleware.use(jwtCfg.protectedPaths, restguardHandler.defineAccessTokenMiddleware());
-    }
     return {
       name: 'app-restguard-checker',
-      middleware: middleware,
+      path: protectedPaths,
+      middleware: restguardHandler.defineAccessTokenMiddleware(),
       branches: branches,
       skipped: (sandboxConfig.enabled === false)
     }

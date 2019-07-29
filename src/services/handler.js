@@ -9,8 +9,7 @@ function Handler(params = {}) {
   const { sandboxConfig, tracelogService } = params;
   const L = params.loggingFactory.getLogger();
   const T = params.loggingFactory.getTracer();
-
-  const jwtCfg = sandboxConfig || {};
+  const errorCodes = sandboxConfig.errorCodes;
 
   this.defineAccessTokenMiddleware = function () {
     const self = this;
@@ -23,7 +22,11 @@ function Handler(params = {}) {
         next();
       })
       .catch(function (err) {
-        res.status(403).send({
+        if (err.returnCode) {
+          res.set('X-Return-Code', err.returnCode);
+        }
+        res.status(err.statusCode || 500).send({
+          name: err.name,
           message: err.message || 'access-token not found or invalid'
         });
       })
@@ -47,19 +50,19 @@ function Handler(params = {}) {
     L.has('silly') && L.log('silly', T.add({ requestId }).toMessage({
       tmpl: 'Req[${requestId}] - check header/url-params/post-body for access-token'
     }));
-    let token = req.get(jwtCfg.accessTokenHeaderName) || req.param(jwtCfg.accessTokenParamsName);
+    let token = req.get(sandboxConfig.accessTokenHeaderName) || req.param(sandboxConfig.accessTokenParamsName);
     if (token) {
       L.has('debug') && L.log('debug', T.add({ requestId, token }).toMessage({
         tmpl: 'Req[${requestId}] - access-token found: [${token}]'
       }));
       let tokenOpts = {
-        ignoreExpiration: jwtCfg.ignoreExpiration || false
+        ignoreExpiration: sandboxConfig.ignoreExpiration || false
       };
       L.has('debug') && L.log('debug', T.add({ requestId, tokenOpts }).toMessage({
         tmpl: 'Req[${requestId}] - Call jwt.verify() with options: ${tokenOpts}'
       }));
       try {
-        let tokenObject = jwt.verify(token, jwtCfg.secretKey, tokenOpts);
+        let tokenObject = jwt.verify(token, sandboxConfig.secretKey, tokenOpts);
         L.has('debug') && L.log('debug', T.add({ requestId, tokenObject }).toMessage({
           tmpl: 'Req[${requestId}] - Verification passed, token: ${tokenObject}'
         }));
@@ -76,19 +79,34 @@ function Handler(params = {}) {
           tmpl: 'Req[${requestId}] - Verification failed, error: ${error}'
         }));
         if (error.name === 'TokenExpiredError') {
-          return { error: new Error('access-token is expired') };
+          return { error: createError('TokenExpiredError') };
         }
         if (error.name === 'JsonWebTokenError') {
-          return { error: new Error('access-token is invalid') };
+          return { error: createError('JsonWebTokenError') };
         }
-        return { error: new Error('jwt.verify() unknown error') };
+        return { error: createError('JwtVerifyUnknownError') };
       }
     } else {
       L.has('debug') && L.log('debug', T.add({ requestId }).toMessage({
         tmpl: 'Req[${requestId}] - access-token not found'
       }));
-      return { error: new Error('access-token not found') };
+      return { error: createError('TokenNotFoundError') };
     }
+  }
+
+  const createError = function (errorName) {
+    const errInfo = lodash.get(errorCodes, errorName);
+    if (errInfo == null) {
+      const err = new Error('Unsupported error[' + errorName + ']');
+      err.returnCode = -1;
+      err.statusCode = 500;
+      return err;
+    }
+    const err = new Error(errInfo.message);
+    err.name = errorName;
+    err.returnCode = errInfo.returnCode;
+    err.statusCode = errInfo.statusCode;
+    return err;
   }
 }
 

@@ -38,6 +38,33 @@ module.exports = {
           "protectedPaths": {
             "type": "array"
           },
+          "errorCodes": {
+            "type": "object",
+            "patternProperties": {
+              ".+": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string"
+                  },
+                  "returnCode": {
+                    "oneOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "statusCode": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
           "autowired": {
             "type": "boolean"
           },
