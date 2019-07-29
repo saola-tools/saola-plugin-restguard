@@ -19,13 +19,13 @@ module.exports = {
           returnCode: 1002,
           statusCode: 401
         },
-        JwtVerifyUnknownError: {
-          message: 'jwt.verify() unknown error',
+        TokenNotFoundError: {
+          message: 'access-token not found',
           returnCode: 1003,
           statusCode: 401
         },
-        TokenNotFoundError: {
-          message: 'access-token not found',
+        JwtVerifyUnknownError: {
+          message: 'jwt.verify() unknown error',
           returnCode: 1004,
           statusCode: 401
         },
