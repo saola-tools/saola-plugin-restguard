@@ -14,7 +14,7 @@ module.exports = {
   plugins: {
     appRestguard: {
       enabled: true,
-      contextPath: contextPath,
+      accessTokenDetailPath: '/-access-token-',
       accessTokenObjectName: accessTokenObjectName,
       accessTokenTransform: function (data) {
         if (data && data.appType === 'adminApp') {

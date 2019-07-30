@@ -13,6 +13,9 @@ function Service(params = {}) {
   let protectedPaths = lodash.get(sandboxConfig, ['protectedPaths']);
   if (lodash.isString(protectedPaths)) protectedPaths = [ protectedPaths ];
   if (!lodash.isArray(protectedPaths)) protectedPaths = [];
+  if (sandboxConfig.accessTokenDetailPath) {
+    protectedPaths.push(sandboxConfig.accessTokenDetailPath);
+  }
 
   this.buildAccessTokenLayer = function(branches) {
     return {
@@ -21,6 +24,24 @@ function Service(params = {}) {
       middleware: restguardHandler.defineAccessTokenMiddleware(),
       branches: branches,
       skipped: (sandboxConfig.enabled === false)
+    }
+  }
+
+  this.buildTokenReaderLayer = function(branches) {
+    if (sandboxConfig.accessTokenDetailPath) {
+      return {
+        name: 'app-restguard-token-reader',
+        path: sandboxConfig.accessTokenDetailPath,
+        middleware: function(req, res, next) {
+          if (lodash.isObject(req[sandboxConfig.accessTokenObjectName])) {
+            res.json(req[sandboxConfig.accessTokenObjectName]);
+          } else {
+            res.status(404).send();
+          }
+        },
+        branches: branches,
+        skipped: (sandboxConfig.enabled === false)
+      }
     }
   }
 
@@ -39,11 +60,13 @@ function Service(params = {}) {
       name: 'app-restguard-branches',
       middleware: express()
     };
-    webweaverService.push([
-      this.buildAccessTokenLayer(),
-      this.buildPermCheckerLayer(),
-      childRack
-    ], sandboxConfig.priority);
+    const layers = [ this.buildAccessTokenLayer() ];
+    const detailLayer = this.buildTokenReaderLayer();
+    if (detailLayer) {
+      layers.push(detailLayer);
+    }
+    layers.push(this.buildPermCheckerLayer(), childRack);
+    webweaverService.push(layers, sandboxConfig.priority);
   }
 
   this.push = function(layerOrBranches) {

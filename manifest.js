@@ -15,9 +15,6 @@ module.exports = {
           "enabled": {
             "type": "boolean"
           },
-          "contextPath": {
-            "type": "string"
-          },
           "accessTokenTransform": {
           },
           "accessTokenObjectName": {
@@ -27,6 +24,9 @@ module.exports = {
             "type": "string"
           },
           "accessTokenParamsName": {
+            "type": "string"
+          },
+          "accessTokenDetailPath": {
             "type": "string"
           },
           "secretKey": {
