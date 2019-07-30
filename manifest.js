@@ -43,6 +43,12 @@ module.exports = {
             "properties": {
               "enabled": {
                 "type": "boolean"
+              },
+              "permissionLocation": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
               }
             }
           },

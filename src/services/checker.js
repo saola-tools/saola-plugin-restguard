@@ -26,7 +26,7 @@ function Checker({loggingFactory, sandboxConfig}) {
       tmpl: 'The path to permissions list: ${permissionLocation}',
     }));
     permissionExtractor = function (req) {
-      return lodash.get(req[accessTokenObjectName], permPath, []);
+      return lodash.get(req[accessTokenObjectName], permissionLocation, []);
     }
   } else if (lodash.isFunction(authorizationCfg.permissionExtractor)) {
     L.has('silly') && L.log('silly', T.toMessage({
