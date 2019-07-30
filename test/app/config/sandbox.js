@@ -36,8 +36,8 @@ module.exports = {
       ignoreExpiration: true,
       secretKey: 'dobietday',
       authorization: {
-        enabled: false,
-        permissionPath: ['permissions'],
+        enabled: true,
+        permissionLocation: ['permissions'],
         permissionExtractor: function(req) {
           return lodash.get(req, [accessTokenObjectName, 'permissions'], []);
         },

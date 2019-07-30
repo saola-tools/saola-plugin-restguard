@@ -13,7 +13,7 @@ function Handler(params = {}) {
 
   this.definePermCheckerMiddleware = function () {
     return function (req, res, next) {
-      let passed = permissionChecker.checkPermissions(req);
+      const passed = permissionChecker.checkPermissions(req);
       if (passed === null) return next();
       if (passed) return next();
       const err = errorCodes['InsufficientError'] || {};

@@ -39,7 +39,12 @@ module.exports = {
             "type": "array"
           },
           "authorization": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              }
+            }
           },
           "errorCodes": {
             "type": "object",

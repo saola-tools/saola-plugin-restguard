@@ -20,17 +20,17 @@ function Checker({loggingFactory, sandboxConfig}) {
   });
 
   let permissionExtractor = null;
-  let permPath = authorizationCfg.permissionPath;
-  if (lodash.isArray(permPath) && !lodash.isEmpty(permPath)) {
-    L.has('silly') && L.log('silly', T.add({ permPath }).toMessage({
-      tmpl: 'permissionPath: ${permPath}',
+  let permissionLocation = authorizationCfg.permissionLocation;
+  if (lodash.isArray(permissionLocation) && !lodash.isEmpty(permissionLocation)) {
+    L.has('silly') && L.log('silly', T.add({ permissionLocation }).toMessage({
+      tmpl: 'The path to permissions list: ${permissionLocation}',
     }));
     permissionExtractor = function (req) {
       return lodash.get(req[accessTokenObjectName], permPath, []);
     }
   } else if (lodash.isFunction(authorizationCfg.permissionExtractor)) {
     L.has('silly') && L.log('silly', T.toMessage({
-      text: 'use the configured permissionExtractor() function'
+      text: 'use the provided permissionExtractor() function'
     }));
     permissionExtractor = authorizationCfg.permissionExtractor;
   } else {
@@ -41,24 +41,34 @@ function Checker({loggingFactory, sandboxConfig}) {
   }
 
   this.checkPermissions = function(req) {
-    let passed = null;
+    if (authorizationCfg.enabled === false) {
+      return null;
+    }
     for (let i = 0; i < compiledRules.length; i++) {
-      let rule = compiledRules[i];
+      const rule = compiledRules[i];
       if (req.url && req.url.match(rule.urlPattern)) {
         if (lodash.isEmpty(rule.methods) || (req.method && rule.methods.indexOf(req.method) >= 0)) {
-          let permissions = permissionExtractor(req);
-          L.has('silly') && L.log('silly', 'extracted permissions: %s', JSON.stringify(permissions));
-          if (lodash.isEmpty(rule.permission) || (lodash.isArray(permissions) && permissions.indexOf(rule.permission) >= 0)) {
-            L.has('silly') && L.log('silly', 'permission accepted: %s', rule.permission);
-            passed = true;
-          } else {
-            passed = false;
+          const permissions = permissionExtractor(req);
+          L.has('silly') && L.log('silly', T.add({ permissions }).toMessage({
+            tmpl: 'extracted permissions: ${permissions}'
+          }));
+          if (lodash.isEmpty(rule.permission)) {
+            L.has('silly') && L.log('silly', T.toMessage({
+              text: 'permission is empty, passed'
+            }));
+            return true;
           }
-          break;
+          if (lodash.isArray(permissions) && permissions.indexOf(rule.permission) >= 0) {
+            L.has('silly') && L.log('silly', T.add({ permission: rule.permission }).toMessage({
+              tmpl: 'permission accepted: ${permission}'
+            }));
+            return true;
+          }
+          return false;
         }
       }
     }
-    return passed;
+    return null;
   }
 };
 
