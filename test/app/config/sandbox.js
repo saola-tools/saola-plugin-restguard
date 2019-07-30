@@ -16,9 +16,17 @@ module.exports = {
       contextPath: contextPath,
       accessTokenObjectName: accessTokenObjectName,
       accessTokenTransform: function (data) {
-        return chores.renameJsonFields(data, {
-          "holderId": "commissionerId"
-        });
+        if (data && data.appType === 'adminApp') {
+          return chores.renameJsonFields(data, {
+            "holderId": "operatorId"
+          });
+        }
+        if (data && data.appType === 'agentApp') {
+          return chores.renameJsonFields(data, {
+            "holderId": "commissionerId"
+          });
+        }
+        return data;
       },
       protectedPaths: [
         contextPath + '/jwt/session-info',
