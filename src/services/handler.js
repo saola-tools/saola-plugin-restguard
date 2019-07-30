@@ -6,10 +6,25 @@ const lodash = Devebot.require('lodash');
 const jwt = require('jsonwebtoken');
 
 function Handler(params = {}) {
-  const { sandboxConfig, tracelogService } = params;
+  const { sandboxConfig, tracelogService, permissionChecker } = params;
   const L = params.loggingFactory.getLogger();
   const T = params.loggingFactory.getTracer();
   const errorCodes = sandboxConfig.errorCodes;
+
+  this.definePermCheckerMiddleware = function () {
+    return function (req, res, next) {
+      let passed = permissionChecker.checkPermissions(req);
+      if (passed === null) return next();
+      if (passed) return next();
+      const err = errorCodes['InsufficientError'] || {};
+      if (err.returnCode) {
+        res.set('X-Return-Code', err.returnCode);
+      }
+      return res.status(err.statusCode || 403).json({
+        message: err.message || 'not sufficient permissions'
+      });
+    }
+  }
 
   this.defineAccessTokenMiddleware = function () {
     const self = this;
@@ -68,6 +83,9 @@ function Handler(params = {}) {
         }));
         if (lodash.isFunction(sandboxConfig.accessTokenTransform)) {
           tokenObject = sandboxConfig.accessTokenTransform(tokenObject);
+          L.has('debug') && L.log('debug', T.add({ requestId, tokenObject }).toMessage({
+            tmpl: 'Req[${requestId}] - transformed token: ${tokenObject}'
+          }));
         }
         req[sandboxConfig.accessTokenObjectName] = tokenObject;
         return { token: tokenObject };
@@ -111,6 +129,7 @@ function Handler(params = {}) {
 }
 
 Handler.referenceHash = {
+  permissionChecker: 'checker',
   tracelogService: 'app-tracelog/tracelogService'
 };
 

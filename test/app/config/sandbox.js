@@ -1,6 +1,7 @@
 'use strict';
 
-var devebot = require('devebot');
+var Devebot = require('devebot');
+var lodash = Devebot.require('lodash');
 var chores = require('../../../lib/utils/chores.js');
 var contextPath = '/example';
 var accessTokenObjectName = 'ACCESS_TOKEN';
@@ -32,7 +33,24 @@ module.exports = {
         contextPath + '/jwt/session-info',
         contextPath + '/jwt/authorized*',
       ],
+      ignoreExpiration: true,
       secretKey: 'dobietday',
+      authorization: {
+        enabled: false,
+        permissionPath: ['permissions'],
+        permissionExtractor: function(req) {
+          return lodash.get(req, [accessTokenObjectName, 'permissions'], []);
+        },
+        permissionRules: [
+          {
+            enabled: true,
+            url: '/jwt/authorized(.*)',
+            paths: [ '/jwt/authorized/:code' ],
+            methods: ['GET', 'POST'],
+            permission: 'VIEW_APPLICATION'
+          }
+        ]
+      }
     },
     appTracelog: {
       tracingPaths: [ contextPath ],

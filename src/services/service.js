@@ -16,9 +16,18 @@ function Service(params = {}) {
 
   this.buildAccessTokenLayer = function(branches) {
     return {
-      name: 'app-restguard-checker',
+      name: 'app-restguard-access-token',
       path: protectedPaths,
       middleware: restguardHandler.defineAccessTokenMiddleware(),
+      branches: branches,
+      skipped: (sandboxConfig.enabled === false)
+    }
+  }
+
+  this.buildPermCheckerLayer = function(branches) {
+    return {
+      name: 'app-restguard-authorization',
+      middleware: restguardHandler.definePermCheckerMiddleware(),
       branches: branches,
       skipped: (sandboxConfig.enabled === false)
     }
@@ -32,6 +41,7 @@ function Service(params = {}) {
     };
     webweaverService.push([
       this.buildAccessTokenLayer(),
+      this.buildPermCheckerLayer(),
       childRack
     ], sandboxConfig.priority);
   }

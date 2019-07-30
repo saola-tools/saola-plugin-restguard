@@ -7,12 +7,13 @@ function Checker({loggingFactory, sandboxConfig}) {
   const L = loggingFactory.getLogger();
   const T = loggingFactory.getTracer();
   const authorizationCfg = sandboxConfig.authorization || {};
+  const accessTokenObjectName = sandboxConfig.accessTokenObjectName;
 
-  let declaredRules = authorizationCfg.permissionRules || [];
-  let compiledRules = [];
+  const declaredRules = authorizationCfg.permissionRules || [];
+  const compiledRules = [];
   lodash.forEach(declaredRules, function (rule) {
     if (rule.enabled != false) {
-      let compiledRule = lodash.omit(rule, ['url']);
+      const compiledRule = lodash.omit(rule, ['url']);
       compiledRule.urlPattern = new RegExp(rule.url || '/(.*)');
       compiledRules.push(compiledRule);
     }
@@ -25,7 +26,7 @@ function Checker({loggingFactory, sandboxConfig}) {
       tmpl: 'permissionPath: ${permPath}',
     }));
     permissionExtractor = function (req) {
-      return lodash.get(req, permPath, []);
+      return lodash.get(req[accessTokenObjectName], permPath, []);
     }
   } else if (lodash.isFunction(authorizationCfg.permissionExtractor)) {
     L.has('silly') && L.log('silly', T.toMessage({
@@ -40,7 +41,7 @@ function Checker({loggingFactory, sandboxConfig}) {
   }
 
   this.checkPermissions = function(req) {
-    let checked = false, passed = null;
+    let passed = null;
     for (let i = 0; i < compiledRules.length; i++) {
       let rule = compiledRules[i];
       if (req.url && req.url.match(rule.urlPattern)) {
@@ -53,7 +54,6 @@ function Checker({loggingFactory, sandboxConfig}) {
           } else {
             passed = false;
           }
-          checked = true;
           break;
         }
       }

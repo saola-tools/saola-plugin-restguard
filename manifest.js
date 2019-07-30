@@ -38,6 +38,9 @@ module.exports = {
           "protectedPaths": {
             "type": "array"
           },
+          "authorization": {
+            "type": "object"
+          },
           "errorCodes": {
             "type": "object",
             "patternProperties": {

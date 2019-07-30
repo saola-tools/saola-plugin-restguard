@@ -29,6 +29,11 @@ module.exports = {
           returnCode: 1004,
           statusCode: 401
         },
+        InsufficientError: {
+          message: 'Insufficient permissions to access',
+          returnCode: 1010,
+          statusCode: 403
+        },
       }
     }
   }
