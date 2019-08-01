@@ -9,6 +9,7 @@
 ```shell
 export LOGOLITE_DEBUGLOG_ENABLED=true
 export DEBUG=devebot*,app*
+npm run clean
 npm run build && node test/app
 ```
 

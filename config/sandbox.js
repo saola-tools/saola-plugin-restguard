@@ -5,6 +5,7 @@ module.exports = {
       accessTokenObjectName: 'accessToken',
       accessTokenHeaderName: 'x-access-token',
       accessTokenParamsName: 'token',
+      allowPublicAccessName: 'publicResource',
       ignoreExpiration: false,
       secretKey: 'changeme',
       errorCodes: {

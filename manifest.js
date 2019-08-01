@@ -29,11 +29,17 @@ module.exports = {
           "accessTokenDetailPath": {
             "type": "string"
           },
+          "allowPublicAccessName": {
+            "type": "string"
+          },
           "secretKey": {
             "type": "string"
           },
           "ignoreExpiration": {
             "type": "boolean"
+          },
+          "publicPaths": {
+            "type": "array"
           },
           "protectedPaths": {
             "type": "array"
@@ -111,6 +117,9 @@ module.exports = {
                   },
                   "statusCode": {
                     "type": "number"
+                  },
+                  "description": {
+                    "type": "string"
                   }
                 },
                 "additionalProperties": false

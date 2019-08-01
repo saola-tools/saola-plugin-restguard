@@ -6,23 +6,28 @@ const lodash = Devebot.require('lodash');
 const jwt = require('jsonwebtoken');
 
 function Handler(params = {}) {
-  const { sandboxConfig, tracelogService, permissionChecker } = params;
+  const { packageName, sandboxConfig, errorManager, tracelogService, permissionChecker } = params;
   const L = params.loggingFactory.getLogger();
   const T = params.loggingFactory.getTracer();
-  const errorCodes = sandboxConfig.errorCodes;
+
+  const errorBuilder = errorManager.register(packageName, {
+    errorCodes: sandboxConfig.errorCodes
+  });
 
   this.definePermCheckerMiddleware = function () {
     return function (req, res, next) {
+      if (sandboxConfig.enabled === false) {
+        return next();
+      }
+      if (req[sandboxConfig.allowPublicAccessName]) {
+        return next();
+      }
       const passed = permissionChecker.checkPermissions(req);
       if (passed === null) return next();
       if (passed) return next();
-      const err = errorCodes['InsufficientError'] || {};
-      if (err.returnCode) {
-        res.set('X-Return-Code', err.returnCode);
-      }
-      return res.status(err.statusCode || 403).json({
-        message: err.message || 'not sufficient permissions'
-      });
+      processError(res, errorBuilder.newError('InsufficientError', {
+        language: extractLangCode(req)
+      }));
     }
   }
 
@@ -32,19 +37,16 @@ function Handler(params = {}) {
       if (sandboxConfig.enabled === false) {
         return next();
       }
+      if (req[sandboxConfig.allowPublicAccessName]) {
+        return next();
+      }
       return self.verifyAccessToken(req, { promiseEnabled: true })
       .then(function () {
         next();
       })
       .catch(function (err) {
-        if (err.returnCode) {
-          res.set('X-Return-Code', err.returnCode);
-        }
-        res.status(err.statusCode || 500).send({
-          name: err.name,
-          message: err.message || 'access-token not found or invalid'
-        });
-      })
+        processError(res, err);
+      });
     }
   }
 
@@ -90,47 +92,61 @@ function Handler(params = {}) {
         req[sandboxConfig.accessTokenObjectName] = tokenObject;
         return { token: tokenObject };
       } catch (error) {
+        const language = extractLangCode(req);
         L.has('debug') && L.log('debug', T.add({
           requestId,
+          language,
           error: { name: error.name, message: error.message }
         }).toMessage({
           tmpl: 'Req[${requestId}] - Verification failed, error: ${error}'
         }));
         if (error.name === 'TokenExpiredError') {
-          return { error: createError('TokenExpiredError') };
+          return {
+            error: errorBuilder.newError('TokenExpiredError', { language })
+          };
         }
         if (error.name === 'JsonWebTokenError') {
-          return { error: createError('JsonWebTokenError') };
+          return {
+            error: errorBuilder.newError('JsonWebTokenError', { language })
+          };
         }
-        return { error: createError('JwtVerifyUnknownError') };
+        return {
+          error: errorBuilder.newError('JwtVerifyUnknownError', { language })
+        };
       }
     } else {
       L.has('debug') && L.log('debug', T.add({ requestId }).toMessage({
         tmpl: 'Req[${requestId}] - access-token not found'
       }));
-      return { error: createError('TokenNotFoundError') };
+      return {
+        error: errorBuilder.newError('TokenNotFoundError', { language })
+      };
     }
-  }
-
-  const createError = function (errorName) {
-    const errInfo = lodash.get(errorCodes, errorName);
-    if (errInfo == null) {
-      const err = new Error('Unsupported error[' + errorName + ']');
-      err.returnCode = -1;
-      err.statusCode = 500;
-      return err;
-    }
-    const err = new Error(errInfo.message);
-    err.name = errorName;
-    err.returnCode = errInfo.returnCode;
-    err.statusCode = errInfo.statusCode;
-    return err;
   }
 }
 
 Handler.referenceHash = {
   permissionChecker: 'checker',
-  tracelogService: 'app-tracelog/tracelogService'
+  tracelogService: 'app-tracelog/tracelogService',
+  errorManager: 'app-errorlist/manager',
 };
 
 module.exports = Handler;
+
+function extractLangCode (req) {
+  return req.get('X-Lang-Code') || req.get('X-Language-Code') || req.get('X-Language');
+}
+
+function processError (res, err) {
+  if (err.returnCode) {
+    res.set('X-Return-Code', err.returnCode);
+  }
+  const body = {
+    name: err.name,
+    message: err.message
+  }
+  if (err.payload) {
+    body.payload = err.payload;
+  }
+  res.status(err.statusCode || 500).send(body);
+}
