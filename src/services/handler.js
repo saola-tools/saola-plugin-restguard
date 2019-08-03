@@ -115,6 +115,7 @@ function Handler(params = {}) {
         };
       }
     } else {
+      const language = extractLangCode(req);
       L.has('debug') && L.log('debug', T.add({ requestId }).toMessage({
         tmpl: 'Req[${requestId}] - access-token not found'
       }));
