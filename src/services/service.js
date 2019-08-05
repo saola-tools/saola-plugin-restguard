@@ -4,11 +4,11 @@ const Devebot = require('devebot');
 const lodash = Devebot.require('lodash');
 
 function Service(params = {}) {
-  const { sandboxConfig, restguardHandler, webweaverService } = params;
+  const { loggingFactory, sandboxConfig, restguardHandler, webweaverService } = params;
   const express = webweaverService.express;
 
-  const L = params.loggingFactory.getLogger();
-  const T = params.loggingFactory.getTracer();
+  const L = loggingFactory.getLogger();
+  const T = loggingFactory.getTracer();
 
   const publicPaths = lodash.get(sandboxConfig, ['publicPaths'], []);
 

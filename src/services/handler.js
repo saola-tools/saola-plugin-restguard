@@ -67,7 +67,10 @@ function Handler(params = {}) {
     L.has('silly') && L.log('silly', T.add({ requestId }).toMessage({
       tmpl: 'Req[${requestId}] - check header/url-params/post-body for access-token'
     }));
-    let token = req.get(sandboxConfig.accessTokenHeaderName) || req.param(sandboxConfig.accessTokenParamsName);
+    let token = req.get(sandboxConfig.accessTokenHeaderName) ||
+        req.query[sandboxConfig.accessTokenParamsName] ||
+        req.params[sandboxConfig.accessTokenParamsName] ||
+        (req.body && req.body[sandboxConfig.accessTokenParamsName]);
     if (token) {
       L.has('debug') && L.log('debug', T.add({ requestId, token }).toMessage({
         tmpl: 'Req[${requestId}] - access-token found: [${token}]'
