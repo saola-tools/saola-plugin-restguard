@@ -6,9 +6,11 @@ const lodash = Devebot.require('lodash');
 const jwt = require('jsonwebtoken');
 
 function Handler(params = {}) {
-  const { packageName, sandboxConfig, errorManager, tracelogService, permissionChecker } = params;
-  const L = params.loggingFactory.getLogger();
-  const T = params.loggingFactory.getTracer();
+  const { loggingFactory, packageName, sandboxConfig } = params;
+  const { errorManager, tracelogService, permissionChecker } = params;
+
+  const L = loggingFactory.getLogger();
+  const T = loggingFactory.getTracer();
 
   const errorBuilder = errorManager.register(packageName, {
     errorCodes: sandboxConfig.errorCodes
