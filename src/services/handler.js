@@ -142,6 +142,9 @@ function extractLangCode (req) {
 }
 
 function processError (res, err) {
+  if (err.packageRef) {
+    res.set('X-Package-Ref', err.packageRef);
+  }
   if (err.returnCode) {
     res.set('X-Return-Code', err.returnCode);
   }
