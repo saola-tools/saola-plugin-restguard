@@ -1,7 +1,8 @@
 {
   "name": "app-restguard",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "The devebot Restful API guard",
+  "homepage": "https://github.com/apporo/app-restguard.git",
   "license": "MIT",
   "author": {
     "name": "apporo",
