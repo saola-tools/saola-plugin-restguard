@@ -78,35 +78,6 @@ function Handler(params = {}) {
     }
   }
 
-  const isBypassed = function (req, bypassingRules) {
-    if (bypassingRules.inclusion) {
-      if (bypassingRules.inclusion['hostnames']) {
-        if (bypassingRules.inclusion['hostnames'].indexOf(req.hostname) >= 0) {
-          return true;
-        }
-      }
-      if (bypassingRules.inclusion['ips']) {
-        if (bypassingRules.inclusion['ips'].indexOf(req.ip) >= 0) {
-          return true;
-        }
-      }
-    }
-    if (bypassingRules.exclusion) {
-      if (bypassingRules.exclusion['hostnames']) {
-        if (bypassingRules.exclusion['hostnames'].indexOf(req.hostname) >= 0) {
-          return false;
-        }
-      }
-      if (bypassingRules.exclusion['ips']) {
-        if (bypassingRules.exclusion['ips'].indexOf(req.ip) >= 0) {
-          return false;
-        }
-      }
-      return true;
-    }
-    return false;
-  }
-
   const verifyAccessToken = function (req) {
     const requestId = tracelogService.getRequestId(req);
     L.has('silly') && L.log('silly', T.add({ requestId }).toMessage({
@@ -184,6 +155,35 @@ module.exports = Handler;
 
 function extractLangCode (req) {
   return req.get('X-Lang-Code') || req.get('X-Language-Code') || req.get('X-Language');
+}
+
+function isBypassed (req, bypassingRules) {
+  if (bypassingRules.inclusion) {
+    if (bypassingRules.inclusion['hostnames']) {
+      if (bypassingRules.inclusion['hostnames'].indexOf(req.hostname) >= 0) {
+        return true;
+      }
+    }
+    if (bypassingRules.inclusion['ips']) {
+      if (bypassingRules.inclusion['ips'].indexOf(req.ip) >= 0) {
+        return true;
+      }
+    }
+  }
+  if (bypassingRules.exclusion) {
+    if (bypassingRules.exclusion['hostnames']) {
+      if (bypassingRules.exclusion['hostnames'].indexOf(req.hostname) >= 0) {
+        return false;
+      }
+    }
+    if (bypassingRules.exclusion['ips']) {
+      if (bypassingRules.exclusion['ips'].indexOf(req.ip) >= 0) {
+        return false;
+      }
+    }
+    return true;
+  }
+  return false;
 }
 
 function processError (res, err) {
