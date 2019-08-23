@@ -12,16 +12,7 @@ function Handler(params = {}) {
   const L = loggingFactory.getLogger();
   const T = loggingFactory.getTracer();
 
-  const bypassingRules = lodash.get(sandboxConfig, ['bypassingRules'], {});
-  for (const filterName of ['exclusionRules', 'inclusionRules']) {
-    for (const ruleName of ['hostnames', 'ips']) {
-      if (bypassingRules[filterName]) {
-        if (!lodash.isArray(bypassingRules[filterName][ruleName])) {
-          bypassingRules[filterName][ruleName] = null;
-        }
-      }
-    };
-  }
+  const bypassingRules = extractBypassingRules(sandboxConfig);
 
   const errorBuilder = errorManager.register(packageName, {
     errorCodes: sandboxConfig.errorCodes
@@ -155,6 +146,21 @@ module.exports = Handler;
 
 function extractLangCode (req) {
   return req.get('X-Lang-Code') || req.get('X-Language-Code') || req.get('X-Language');
+}
+
+function extractBypassingRules (sandboxConfig) {
+  const bypassingRules = {};
+  lodash.get(sandboxConfig, ['bypassingRules'], {});
+  for (const filterName of ['exclusionRules', 'inclusionRules']) {
+    for (const ruleName of ['hostnames', 'ips']) {
+      if (bypassingRules[filterName]) {
+        if (!lodash.isArray(bypassingRules[filterName][ruleName])) {
+          bypassingRules[filterName][ruleName] = null;
+        }
+      }
+    };
+  }
+  return bypassingRules;
 }
 
 function isBypassed (req, bypassingRules) {
