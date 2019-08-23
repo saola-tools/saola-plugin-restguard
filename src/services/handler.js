@@ -12,6 +12,17 @@ function Handler(params = {}) {
   const L = loggingFactory.getLogger();
   const T = loggingFactory.getTracer();
 
+  const bypassingRules = lodash.get(sandboxConfig, ['bypassingRules'], {});
+  for (const filterName of ['exclusionRules', 'inclusionRules']) {
+    for (const ruleName of ['hostnames', 'ips']) {
+      if (bypassingRules[filterName]) {
+        if (!lodash.isArray(bypassingRules[filterName][ruleName])) {
+          bypassingRules[filterName][ruleName] = null;
+        }
+      }
+    };
+  }
+
   const errorBuilder = errorManager.register(packageName, {
     errorCodes: sandboxConfig.errorCodes
   });
@@ -42,6 +53,9 @@ function Handler(params = {}) {
       if (req[sandboxConfig.allowPublicAccessName]) {
         return next();
       }
+      if (isBypassed(req, bypassingRules)) {
+        return next();
+      }
       return self.verifyAccessToken(req, { promiseEnabled: true })
       .then(function () {
         next();
@@ -62,6 +76,35 @@ function Handler(params = {}) {
     } else {
       return result;
     }
+  }
+
+  const isBypassed = function (req, bypassingRules) {
+    if (bypassingRules.inclusion) {
+      if (bypassingRules.inclusion['hostnames']) {
+        if (bypassingRules.inclusion['hostnames'].indexOf(req.hostname) >= 0) {
+          return true;
+        }
+      }
+      if (bypassingRules.inclusion['ips']) {
+        if (bypassingRules.inclusion['ips'].indexOf(req.ip) >= 0) {
+          return true;
+        }
+      }
+    }
+    if (bypassingRules.exclusion) {
+      if (bypassingRules.exclusion['hostnames']) {
+        if (bypassingRules.exclusion['hostnames'].indexOf(req.hostname) >= 0) {
+          return false;
+        }
+      }
+      if (bypassingRules.exclusion['ips']) {
+        if (bypassingRules.exclusion['ips'].indexOf(req.ip) >= 0) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
   }
 
   const verifyAccessToken = function (req) {

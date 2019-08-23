@@ -33,6 +33,11 @@ module.exports = {
         contextPath + '/jwt/session-info',
         contextPath + '/jwt/authorized*',
       ],
+      bypassingRules: {
+        exclusion: {
+          hostnames: [ 'example.com' ]
+        }
+      },
       ignoreExpiration: true,
       secretKey: 'dobietday',
       authorization: {
@@ -55,6 +60,9 @@ module.exports = {
     appTracelog: {
       tracingPaths: [ contextPath ],
       tracingBoundaryEnabled: true
+    },
+    appWebweaver: {
+      printRequestInfo: true
     },
     appWebserver: {
       port: 7878

@@ -42,7 +42,22 @@ module.exports = {
             "type": "array"
           },
           "protectedPaths": {
-            "type": "array"
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "bypassingRules": {
+            "exclusion": {
+              "$ref": "#/definitions/bypassingRule"
+            },
+            "inclusion": {
+              "$ref": "#/definitions/bypassingRule"
+            }
           },
           "authorization": {
             "type": "object",
@@ -134,7 +149,26 @@ module.exports = {
             "type": "number"
           },
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "definitions": {
+          "bypassingRule": {
+            "type": "object",
+            "properties": {
+              "hostnames": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "ips": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
       }
     }
   }

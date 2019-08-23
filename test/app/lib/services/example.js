@@ -37,7 +37,7 @@ function Example(params) {
     path: contextPath + '/jwt',
     middleware: router_jwt
   });
-  restguardService.push(layers);
+  restguardService.push(params.webweaverService.getPrintRequestInfoLayer(layers));
 };
 
 Example.referenceHash = {

@@ -20,6 +20,7 @@ npm run build && node test/app
 ```shell
 curl -v --request GET \
 --url http://localhost:7878/example/jwt/session-info \
+--header 'x-forwarded-host: example.com' \
 --header 'x-access-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBUeXBlIjoiYWdlbnRBcHAiLCJwaG9uZU51bWJlciI6Iis4NDk3MzQwNzEzOSIsImV4cGlyZWRJbiI6NjAwLCJleHBpcmVkVGltZSI6IjIwMTktMDctMjlUMTY6MjQ6MTkuMTYyWiIsInVzZXJJZCI6IjVkMjUyZTQ4NTM2YjU0MmMyY2ViM2FiZiIsImhvbGRlcklkIjoiNWQzMzYzODJkM2NmZDE2ZmM2YmVhYTA3IiwiaWF0IjoxNTY0NDE2ODMxLCJleHAiOjE1NjQ0MTc0MzF9.b-ywZsOguwDABtXjoq02JlTLRt5HzEPHCjAZsdynPnw' \
 ```
 

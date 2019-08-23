@@ -82,7 +82,7 @@ function Service(params = {}) {
   if (sandboxConfig.autowired !== false) {
     childRack = childRack || {
       name: 'app-restguard-branches',
-      middleware: express()
+      middleware: express.Router()
     };
     const layers = [];
     // public resource layer
