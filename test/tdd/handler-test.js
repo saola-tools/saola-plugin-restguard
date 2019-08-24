@@ -71,6 +71,20 @@ describe('handler', function() {
       isBypassed = dtk.get(Handler, 'isBypassed');
     });
 
+    it('should be bypassed if the enabled is false', function () {
+      var bypassingRules = {
+        enabled: false,
+        exclusion: {
+          hostnames: ['example.com'],
+          ips: ['192.168.1.1']
+        }
+      };
+      assert.isTrue(isBypassed({ hostname: 'example.com', ip: '127.0.0.1' }, bypassingRules));
+      assert.isTrue(isBypassed({ hostname: 'example.com', ip: '192.168.1.1' }, bypassingRules));
+      assert.isTrue(isBypassed({ hostname: 'devebot.com', ip: '192.168.1.1' }, bypassingRules));
+      assert.isTrue(isBypassed({ hostname: 'devebot.com', ip: '127.0.0.1' }, bypassingRules));
+    });
+
     it('should satisfy the exclusion bypassing rules (array)', function () {
       var bypassingRules = {
         exclusion: {

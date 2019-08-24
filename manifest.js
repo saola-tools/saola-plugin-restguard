@@ -52,6 +52,9 @@ module.exports = {
             }
           },
           "bypassingRules": {
+            "enabled": {
+              "type": "boolean"
+            },
             "exclusion": {
               "$ref": "#/definitions/bypassingRule"
             },

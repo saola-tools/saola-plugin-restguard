@@ -153,7 +153,7 @@ const RULE_FIELD_IPS = 'ips';
 
 function extractBypassingRules (sandboxConfig) {
   let bypassingRules = lodash.get(sandboxConfig, ['bypassingRules'], {});
-  bypassingRules = lodash.pick(bypassingRules, ['exclusion', 'inclusion']);
+  bypassingRules = lodash.pick(bypassingRules, ['enabled', 'exclusion', 'inclusion']);
   for (const filterName of ['exclusion', 'inclusion']) {
     for (const ruleName of [RULE_FIELD_HOSTNAMES, RULE_FIELD_IPS]) {
       if (bypassingRules[filterName]) {
@@ -208,6 +208,9 @@ function matchFilter (req, bypassingFilter) {
 }
 
 function isBypassed (req, bypassingRules) {
+  if (bypassingRules.enabled === false) {
+    return true;
+  }
   if ('inclusion' in bypassingRules) {
     if (matchFilter(req, bypassingRules['inclusion'])) {
       return true;
