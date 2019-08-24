@@ -148,24 +148,27 @@ function extractLangCode (req) {
   return req.get('X-Lang-Code') || req.get('X-Language-Code') || req.get('X-Language');
 }
 
+const RULE_FIELD_HOSTNAMES = 'hostnames';
+const RULE_FIELD_IPS = 'ips';
+
 function extractBypassingRules (sandboxConfig) {
   let bypassingRules = lodash.get(sandboxConfig, ['bypassingRules'], {});
   bypassingRules = lodash.pick(bypassingRules, ['exclusion', 'inclusion']);
   for (const filterName of ['exclusion', 'inclusion']) {
-    for (const ruleName of ['hostnames', 'ips']) {
+    for (const ruleName of [RULE_FIELD_HOSTNAMES, RULE_FIELD_IPS]) {
       if (bypassingRules[filterName]) {
         const ruleValue = bypassingRules[filterName][ruleName];
         if (lodash.isArray(ruleValue)) {
           continue;
         }
         if (lodash.isString(ruleValue)) {
-          if (ruleName === 'hostnames') {
+          if (ruleName === RULE_FIELD_HOSTNAMES) {
             bypassingRules[filterName][ruleName] = new RegExp(ruleValue);
             continue;
           }
         }
         if (ruleValue instanceof RegExp) {
-          if (ruleName === 'hostnames') {
+          if (ruleName === RULE_FIELD_HOSTNAMES) {
             continue;
           }
         }
@@ -178,36 +181,46 @@ function extractBypassingRules (sandboxConfig) {
 
 function isBypassed (req, bypassingRules) {
   if (bypassingRules.inclusion) {
-    if (bypassingRules.inclusion['hostnames']) {
-      if (bypassingRules.inclusion['hostnames'] instanceof RegExp) {
-        if (req.hostname) {
-          return req.hostname.match(bypassingRules.inclusion['hostnames']);
+    if (bypassingRules.inclusion[RULE_FIELD_HOSTNAMES]) {
+      if (bypassingRules.inclusion[RULE_FIELD_HOSTNAMES] instanceof RegExp) {
+        if (typeof req.hostname === 'string') {
+          return req.hostname.match(bypassingRules.inclusion[RULE_FIELD_HOSTNAMES]) != null;
         }
       }
-      if (bypassingRules.inclusion['hostnames'].indexOf(req.hostname) >= 0) {
-        return true;
+      if (Array.isArray(bypassingRules.inclusion[RULE_FIELD_HOSTNAMES])) {
+        if (bypassingRules.inclusion[RULE_FIELD_HOSTNAMES].indexOf(req.hostname) >= 0) {
+          return true;
+        }
       }
     }
-    if (bypassingRules.inclusion['ips']) {
-      if (bypassingRules.inclusion['ips'].indexOf(req.ip) >= 0) {
-        return true;
+    if (bypassingRules.inclusion[RULE_FIELD_IPS]) {
+      if (Array.isArray(bypassingRules.inclusion[RULE_FIELD_IPS])) {
+        if (bypassingRules.inclusion[RULE_FIELD_IPS].indexOf(req.ip) >= 0) {
+          return true;
+        }
       }
     }
   }
   if (bypassingRules.exclusion) {
-    if (bypassingRules.exclusion['hostnames']) {
-      if (bypassingRules.exclusion['hostnames'] instanceof RegExp) {
-        if (req.hostname) {
-          return !(req.hostname.match(bypassingRules.exclusion['hostnames']));
+    if (bypassingRules.exclusion[RULE_FIELD_HOSTNAMES]) {
+      if (bypassingRules.exclusion[RULE_FIELD_HOSTNAMES] instanceof RegExp) {
+        if (typeof req.hostname === 'string') {
+          if (req.hostname.match(bypassingRules.exclusion[RULE_FIELD_HOSTNAMES])) {
+            return false;
+          };
         }
       }
-      if (bypassingRules.exclusion['hostnames'].indexOf(req.hostname) >= 0) {
-        return false;
+      if (Array.isArray(bypassingRules.exclusion[RULE_FIELD_HOSTNAMES])) {
+        if (bypassingRules.exclusion[RULE_FIELD_HOSTNAMES].indexOf(req.hostname) >= 0) {
+          return false;
+        }
       }
     }
-    if (bypassingRules.exclusion['ips']) {
-      if (bypassingRules.exclusion['ips'].indexOf(req.ip) >= 0) {
-        return false;
+    if (bypassingRules.exclusion[RULE_FIELD_IPS]) {
+      if (Array.isArray(bypassingRules.exclusion[RULE_FIELD_IPS])) {
+        if (bypassingRules.exclusion[RULE_FIELD_IPS].indexOf(req.ip) >= 0) {
+          return false;
+        }
       }
     }
     return true;

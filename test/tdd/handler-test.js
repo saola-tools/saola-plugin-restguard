@@ -70,5 +70,32 @@ describe('handler', function() {
       Handler = dtk.acquire('handler');
       isBypassed = dtk.get(Handler, 'isBypassed');
     });
+
+    it('should satisfy the exclusion bypassing rules (array)', function () {
+      var bypassingRules = {
+        exclusion: {
+          hostnames: ['example.com'],
+          ips: ['192.168.1.101', '192.168.1.102']
+        }
+      };
+      assert.isFalse(isBypassed({ hostname: 'example.com', ip: '127.0.0.1' }, bypassingRules));
+      assert.isFalse(isBypassed({ hostname: 'example.com', ip: '192.168.1.102' }, bypassingRules));
+      assert.isFalse(isBypassed({ hostname: 'devebot.com', ip: '192.168.1.102' }, bypassingRules));
+      assert.isTrue(isBypassed({ hostname: 'devebot.com', ip: '127.0.0.1' }, bypassingRules));
+    });
+
+    it('should satisfy the exclusion bypassing rules (regexp)', function () {
+      var bypassingRules = {
+        exclusion: {
+          hostnames: /example\.(com|net|org)/,
+          ips: ['192.168.1.101', '192.168.1.102']
+        }
+      };
+      assert.isFalse(isBypassed({ hostname: 'example.com', ip: '127.0.0.1' }, bypassingRules));
+      assert.isFalse(isBypassed({ hostname: 'www.example.org', ip: '127.0.0.1' }, bypassingRules));
+      assert.isFalse(isBypassed({ hostname: 'example.net', ip: '192.168.1.102' }, bypassingRules));
+      assert.isFalse(isBypassed({ hostname: 'devebot.com', ip: '192.168.1.102' }, bypassingRules));
+      assert.isTrue(isBypassed({ hostname: 'devebot.com', ip: '127.0.0.1' }, bypassingRules));
+    });
   });
 });
