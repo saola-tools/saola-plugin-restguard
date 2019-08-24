@@ -211,17 +211,35 @@ function isBypassed (req, bypassingRules) {
   if (bypassingRules.enabled === false) {
     return false;
   }
+
+  let incl = null;
   if ('inclusion' in bypassingRules) {
     if (matchFilter(req, bypassingRules['inclusion'])) {
-      return true;
+      incl = true;
+    } else {
+      incl = false;
     }
   }
+
+  let excl = null;
   if ('exclusion' in bypassingRules) {
     if (!matchFilter(req, bypassingRules['exclusion'])) {
-      return true;
+      excl = true;
+    } else {
+      excl = false;
     }
   }
-  return false;
+
+  if (incl === null && excl === null) {
+    return false;
+  }
+  if (incl === null) {
+    return excl;
+  }
+  if (excl === null) {
+    return incl;
+  }
+  return incl && excl;
 }
 
 function processError (res, err) {

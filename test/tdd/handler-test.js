@@ -138,5 +138,23 @@ describe('handler', function() {
       assert.isTrue(isBypassed({ hostname: 'devebot.com', ip: '192.168.1.102' }, bypassingRules));
       assert.isFalse(isBypassed({ hostname: 'devebot.com', ip: '127.0.0.1' }, bypassingRules));
     });
+
+    it('should satisfy the both of inclusion and exclusion bypassing rules', function () {
+      var bypassingRules = {
+        exclusion: {
+          hostnames: ['example.com', 'testing.com'],
+          ips: ['192.168.1.101', '192.168.1.102']
+        },
+        inclusion: {
+          hostnames: /example\.(com|net|org)/,
+          ips: ['192.168.1.102', '192.168.1.103']
+        }
+      };
+      assert.isFalse(isBypassed({ hostname: 'example.com', ip: '127.0.0.1' }, bypassingRules));
+      assert.isFalse(isBypassed({ hostname: 'unknown.com', ip: '192.168.1.102' }, bypassingRules));
+      assert.isFalse(isBypassed({ hostname: 'booking.net', ip: '127.0.0.1' }, bypassingRules));
+      assert.isFalse(isBypassed({ hostname: 'devebot.com', ip: '192.168.1.101' }, bypassingRules));
+      assert.isTrue(isBypassed({ hostname: 'devebot.com', ip: '192.168.1.103' }, bypassingRules));
+    });
   });
 });
