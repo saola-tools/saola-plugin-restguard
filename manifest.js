@@ -173,9 +173,6 @@ module.exports = {
               "ips": {
                 "oneOf": [
                   {
-                    "type": "string"
-                  },
-                  {
                     "type": "array",
                     "items": {
                       "type": "string"

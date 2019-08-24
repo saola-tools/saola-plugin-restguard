@@ -97,5 +97,32 @@ describe('handler', function() {
       assert.isFalse(isBypassed({ hostname: 'devebot.com', ip: '192.168.1.102' }, bypassingRules));
       assert.isTrue(isBypassed({ hostname: 'devebot.com', ip: '127.0.0.1' }, bypassingRules));
     });
+
+    it('should satisfy the inclusion bypassing rules (array)', function () {
+      var bypassingRules = {
+        inclusion: {
+          hostnames: ['example.com'],
+          ips: ['192.168.1.101', '192.168.1.102']
+        }
+      };
+      assert.isTrue(isBypassed({ hostname: 'example.com', ip: '127.0.0.1' }, bypassingRules));
+      assert.isTrue(isBypassed({ hostname: 'example.com', ip: '192.168.1.102' }, bypassingRules));
+      assert.isTrue(isBypassed({ hostname: 'devebot.com', ip: '192.168.1.102' }, bypassingRules));
+      assert.isFalse(isBypassed({ hostname: 'devebot.com', ip: '127.0.0.1' }, bypassingRules));
+    });
+
+    it('should satisfy the inclusion bypassing rules (regexp)', function () {
+      var bypassingRules = {
+        inclusion: {
+          hostnames: /example\.(com|net|org)/,
+          ips: ['192.168.1.101', '192.168.1.102']
+        }
+      };
+      assert.isTrue(isBypassed({ hostname: 'example.com', ip: '127.0.0.1' }, bypassingRules));
+      assert.isTrue(isBypassed({ hostname: 'www.example.org', ip: '127.0.0.1' }, bypassingRules));
+      assert.isTrue(isBypassed({ hostname: 'example.net', ip: '192.168.1.102' }, bypassingRules));
+      assert.isTrue(isBypassed({ hostname: 'devebot.com', ip: '192.168.1.102' }, bypassingRules));
+      assert.isFalse(isBypassed({ hostname: 'devebot.com', ip: '127.0.0.1' }, bypassingRules));
+    });
   });
 });

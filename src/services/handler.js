@@ -179,51 +179,44 @@ function extractBypassingRules (sandboxConfig) {
   return bypassingRules;
 }
 
-function isBypassed (req, bypassingRules) {
-  if (bypassingRules.inclusion) {
-    if (bypassingRules.inclusion[RULE_FIELD_HOSTNAMES]) {
-      if (bypassingRules.inclusion[RULE_FIELD_HOSTNAMES] instanceof RegExp) {
+function matchFilter (req, bypassingFilter) {
+  let matched = false;
+  if (bypassingFilter) {
+    if (bypassingFilter[RULE_FIELD_HOSTNAMES]) {
+      if (bypassingFilter[RULE_FIELD_HOSTNAMES] instanceof RegExp) {
         if (typeof req.hostname === 'string') {
-          return req.hostname.match(bypassingRules.inclusion[RULE_FIELD_HOSTNAMES]) != null;
+          if (req.hostname.match(bypassingFilter[RULE_FIELD_HOSTNAMES])) {
+            matched = true;
+          }
         }
       }
-      if (Array.isArray(bypassingRules.inclusion[RULE_FIELD_HOSTNAMES])) {
-        if (bypassingRules.inclusion[RULE_FIELD_HOSTNAMES].indexOf(req.hostname) >= 0) {
-          return true;
+      if (!matched && Array.isArray(bypassingFilter[RULE_FIELD_HOSTNAMES])) {
+        if (bypassingFilter[RULE_FIELD_HOSTNAMES].indexOf(req.hostname) >= 0) {
+          matched = true;
         }
       }
     }
-    if (bypassingRules.inclusion[RULE_FIELD_IPS]) {
-      if (Array.isArray(bypassingRules.inclusion[RULE_FIELD_IPS])) {
-        if (bypassingRules.inclusion[RULE_FIELD_IPS].indexOf(req.ip) >= 0) {
-          return true;
+    if (!matched && bypassingFilter[RULE_FIELD_IPS]) {
+      if (Array.isArray(bypassingFilter[RULE_FIELD_IPS])) {
+        if (bypassingFilter[RULE_FIELD_IPS].indexOf(req.ip) >= 0) {
+          matched = true;
         }
       }
     }
   }
-  if (bypassingRules.exclusion) {
-    if (bypassingRules.exclusion[RULE_FIELD_HOSTNAMES]) {
-      if (bypassingRules.exclusion[RULE_FIELD_HOSTNAMES] instanceof RegExp) {
-        if (typeof req.hostname === 'string') {
-          if (req.hostname.match(bypassingRules.exclusion[RULE_FIELD_HOSTNAMES])) {
-            return false;
-          };
-        }
-      }
-      if (Array.isArray(bypassingRules.exclusion[RULE_FIELD_HOSTNAMES])) {
-        if (bypassingRules.exclusion[RULE_FIELD_HOSTNAMES].indexOf(req.hostname) >= 0) {
-          return false;
-        }
-      }
+  return matched;
+}
+
+function isBypassed (req, bypassingRules) {
+  if ('inclusion' in bypassingRules) {
+    if (matchFilter(req, bypassingRules['inclusion'])) {
+      return true;
     }
-    if (bypassingRules.exclusion[RULE_FIELD_IPS]) {
-      if (Array.isArray(bypassingRules.exclusion[RULE_FIELD_IPS])) {
-        if (bypassingRules.exclusion[RULE_FIELD_IPS].indexOf(req.ip) >= 0) {
-          return false;
-        }
-      }
+  }
+  if ('exclusion' in bypassingRules) {
+    if (!matchFilter(req, bypassingRules['exclusion'])) {
+      return true;
     }
-    return true;
   }
   return false;
 }
