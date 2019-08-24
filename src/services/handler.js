@@ -209,7 +209,7 @@ function matchFilter (req, bypassingFilter) {
 
 function isBypassed (req, bypassingRules) {
   if (bypassingRules.enabled === false) {
-    return true;
+    return false;
   }
   if ('inclusion' in bypassingRules) {
     if (matchFilter(req, bypassingRules['inclusion'])) {
