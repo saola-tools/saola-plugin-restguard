@@ -56,11 +56,13 @@ module.exports = {
               "type": "boolean"
             },
             "exclusion": {
-              "$ref": "#/definitions/bypassingRule"
+              "$ref": "#/definitions/bypassingRule",
+              "description": "bypass checking token all of the requests except the one that satisfied this rule",
             },
             "inclusion": {
-              "$ref": "#/definitions/bypassingRule"
-            }
+              "$ref": "#/definitions/bypassingRule",
+              "description": "bypass checking token the request that satisfied this rule",
+            },
           },
           "authorization": {
             "type": "object",
