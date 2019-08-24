@@ -149,14 +149,27 @@ function extractLangCode (req) {
 }
 
 function extractBypassingRules (sandboxConfig) {
-  const bypassingRules = {};
-  lodash.get(sandboxConfig, ['bypassingRules'], {});
-  for (const filterName of ['exclusionRules', 'inclusionRules']) {
+  let bypassingRules = lodash.get(sandboxConfig, ['bypassingRules'], {});
+  bypassingRules = lodash.pick(bypassingRules, ['exclusion', 'inclusion']);
+  for (const filterName of ['exclusion', 'inclusion']) {
     for (const ruleName of ['hostnames', 'ips']) {
       if (bypassingRules[filterName]) {
-        if (!lodash.isArray(bypassingRules[filterName][ruleName])) {
-          bypassingRules[filterName][ruleName] = null;
+        const ruleValue = bypassingRules[filterName][ruleName];
+        if (lodash.isArray(ruleValue)) {
+          continue;
         }
+        if (lodash.isString(ruleValue)) {
+          if (ruleName === 'hostnames') {
+            bypassingRules[filterName][ruleName] = new RegExp(ruleValue);
+            continue;
+          }
+        }
+        if (ruleValue instanceof RegExp) {
+          if (ruleName === 'hostnames') {
+            continue;
+          }
+        }
+        bypassingRules[filterName][ruleName] = null;
       }
     };
   }
@@ -166,6 +179,11 @@ function extractBypassingRules (sandboxConfig) {
 function isBypassed (req, bypassingRules) {
   if (bypassingRules.inclusion) {
     if (bypassingRules.inclusion['hostnames']) {
+      if (bypassingRules.inclusion['hostnames'] instanceof RegExp) {
+        if (req.hostname) {
+          return req.hostname.match(bypassingRules.inclusion['hostnames']);
+        }
+      }
       if (bypassingRules.inclusion['hostnames'].indexOf(req.hostname) >= 0) {
         return true;
       }
@@ -178,6 +196,11 @@ function isBypassed (req, bypassingRules) {
   }
   if (bypassingRules.exclusion) {
     if (bypassingRules.exclusion['hostnames']) {
+      if (bypassingRules.exclusion['hostnames'] instanceof RegExp) {
+        if (req.hostname) {
+          return !(req.hostname.match(bypassingRules.exclusion['hostnames']));
+        }
+      }
       if (bypassingRules.exclusion['hostnames'].indexOf(req.hostname) >= 0) {
         return false;
       }

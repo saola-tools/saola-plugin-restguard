@@ -155,16 +155,33 @@ module.exports = {
             "type": "object",
             "properties": {
               "hostnames": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "object"
+                  }
+                ]
               },
               "ips": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                ]
               }
             }
           }
