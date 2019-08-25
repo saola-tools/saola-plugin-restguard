@@ -18,6 +18,8 @@ function Handler(params = {}) {
     errorCodes: sandboxConfig.errorCodes
   });
 
+  const serviceContext = { L, T, sandboxConfig, errorBuilder, tracelogService };
+
   this.definePermCheckerMiddleware = function () {
     return function (req, res, next) {
       if (sandboxConfig.enabled === false) {
@@ -58,7 +60,7 @@ function Handler(params = {}) {
   }
 
   this.verifyAccessToken = function (req, { promiseEnabled }) {
-    const result = verifyAccessToken(req, sandboxConfig, errorBuilder, tracelogService, L, T);
+    const result = verifyAccessToken(req, serviceContext);
     if (promiseEnabled) {
       if (result.error) {
         return Promise.reject(result.error);
@@ -193,7 +195,8 @@ function processError (res, err) {
   res.status(err.statusCode || 500).send(body);
 }
 
-const verifyAccessToken = function (req, sandboxConfig, errorBuilder, tracelogService, L, T) {
+const verifyAccessToken = function (req, serviceContext) {
+  const { sandboxConfig, errorBuilder, tracelogService, L, T } = serviceContext;
   const requestId = tracelogService.getRequestId(req);
   L.has('silly') && L.log('silly', T.add({ requestId }).toMessage({
     tmpl: 'Req[${requestId}] - check header/url-params/post-body for access-token'

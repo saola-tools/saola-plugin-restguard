@@ -1,6 +1,7 @@
 module.exports = {
   devebot: {
-    mode: 'silent'
+    coupling: 'loose',
+    mode: 'silent',
   },
   logger: {
     transports: {

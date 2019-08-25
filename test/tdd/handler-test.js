@@ -2,6 +2,7 @@
 
 var devebot = require('devebot');
 var lodash = devebot.require('lodash');
+var path = require('path');
 var assert = require('chai').assert;
 var dtk = require('liberica').mockit;
 
@@ -157,4 +158,52 @@ describe('handler', function() {
       assert.isTrue(isBypassed({ hostname: 'devebot.com', ip: '192.168.1.103' }, bypassingRules));
     });
   });
+
+  var app = require(path.join(__dirname, '../app'));
+  var sandboxConfig = lodash.get(app.config, ['sandbox', 'default', 'plugins', 'appRestguard']);
+  var tracelogService = app.runner.getSandboxService('app-tracelog/tracelogService');
+  var errorManager = app.runner.getSandboxService('app-errorlist/manager');
+  var errorBuilder = errorManager.register('app-restguard', sandboxConfig);
+
+  describe('verifyAccessToken()', function() {
+    var Handler, verifyAccessToken;
+    var serviceContext = lodash.assign({ sandboxConfig, errorBuilder, tracelogService }, ctx);
+
+    beforeEach(function() {
+      Handler = dtk.acquire('handler');
+      verifyAccessToken = dtk.get(Handler, 'verifyAccessToken');
+    });
+
+    it('throw an TokenNotFoundError if a token could not be found in header, query or body', function () {
+      var req = new ExpressRequestMock();
+      var result = verifyAccessToken(req, serviceContext);
+      assert.isUndefined(result.token);
+      assert.isObject(result.error);
+      assert.equal(result.error.name, 'TokenNotFoundError');
+    });
+  });
 });
+
+function ExpressRequestMock(kwargs = {}) {
+  var store = { };
+
+  store.headers = lodash.mapKeys(kwargs.headers, function(value, key) {
+    return lodash.lowerCase(key);
+  });
+
+  var self = this;
+  lodash.forEach (['query', 'params'], function(fieldName) {
+    self[fieldName] = {};
+    if (fieldName in kwargs) {
+      if (kwargs[fieldName] && lodash.isObject(kwargs[fieldName])) {
+        self[fieldName] = lodash.cloneDeep(kwargs[fieldName]);
+      } else {
+        throw Error('ExpressRequestMock[' + fieldName + '] must be an object');
+      }
+    }
+  });
+
+  this.get = function(name) {
+    return store.headers[lodash.lowerCase(name)];
+  }
+}
