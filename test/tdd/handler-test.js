@@ -1,6 +1,7 @@
 'use strict';
 
 var devebot = require('devebot');
+var Promise = devebot.require('bluebird');
 var lodash = devebot.require('lodash');
 var jwt = require('jsonwebtoken');
 var path = require('path');
@@ -237,6 +238,25 @@ describe('handler', function() {
       assert.isUndefined(result.token);
       assert.isObject(result.error);
       assert.equal(result.error.name, 'JsonWebTokenError');
+    });
+
+    it('throw a TokenExpiredError if the access-token has expired', function () {
+      var data = { message: 'example' };
+      var req = new ExpressRequestMock({
+        headers: {
+          'X-Access-Token': createAccessToken(data, sandboxConfig.secretKey, 1) // 1 second
+        }
+      });
+      return Promise.resolve().delay(1100).then(function() {
+        var serviceContextCopied = lodash.cloneDeep(serviceContext);
+        serviceContextCopied.secretKeys = [
+          sandboxConfig.secretKey
+        ];
+        var result = verifyAccessToken(req, serviceContextCopied);
+        assert.isUndefined(result.token);
+        assert.isObject(result.error);
+        assert.equal(result.error.name, 'TokenExpiredError');
+      })
     });
 
     it('throw a TokenNotFoundError if a token could not be found in header, query or body', function () {
