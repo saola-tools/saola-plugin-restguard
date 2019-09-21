@@ -2,6 +2,7 @@
 
 var devebot = require('devebot');
 var lodash = devebot.require('lodash');
+var jwt = require('jsonwebtoken');
 var path = require('path');
 var assert = require('chai').assert;
 var dtk = require('liberica').mockit;
@@ -174,7 +175,32 @@ describe('handler', function() {
       verifyAccessToken = dtk.get(Handler, 'verifyAccessToken');
     });
 
-    it('throw an TokenNotFoundError if a token could not be found in header, query or body', function () {
+    it('return ok when a valid accessToken provided', function () {
+      var data = { message: 'example' };
+      var req = new ExpressRequestMock({
+        headers: {
+          'X-Access-Token': createAccessToken(data, sandboxConfig.secretKey, 120000)
+        }
+      });
+      var result = verifyAccessToken(req, serviceContext);
+      assert.isObject(result.token);
+      assert.deepInclude(result.token, data);
+      assert.isUndefined(result.error);
+    });
+
+    it('throw a JsonWebTokenError if an unmatched secretKey provided', function () {
+      var req = new ExpressRequestMock({
+        headers: {
+          'X-Access-Token': createAccessToken({}, 'changeme', 120000)
+        }
+      });
+      var result = verifyAccessToken(req, serviceContext);
+      assert.isUndefined(result.token);
+      assert.isObject(result.error);
+      assert.equal(result.error.name, 'JsonWebTokenError');
+    });
+
+    it('throw a TokenNotFoundError if a token could not be found in header, query or body', function () {
       var req = new ExpressRequestMock();
       var result = verifyAccessToken(req, serviceContext);
       assert.isUndefined(result.token);
@@ -183,6 +209,13 @@ describe('handler', function() {
     });
   });
 });
+
+function createAccessToken (data = {}, secretKey, expiresIn) {
+  const token = jwt.sign(data, secretKey || 't0ps3cr3t', {
+    expiresIn: expiresIn || 60 * 1000
+  });
+  return token;
+}
 
 function ExpressRequestMock(kwargs = {}) {
   var store = { };

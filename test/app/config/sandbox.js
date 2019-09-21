@@ -4,7 +4,7 @@ var Devebot = require('devebot');
 var lodash = Devebot.require('lodash');
 var chores = require('../../../lib/utils/chores.js');
 var contextPath = '/example';
-var accessTokenObjectName = 'ACCESS_TOKEN';
+var accessTokenObjectName = 'ACCESS_TOKEN'; // default: 'accessToken'
 
 module.exports = {
   application: {
