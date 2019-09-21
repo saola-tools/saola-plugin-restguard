@@ -165,10 +165,11 @@ describe('handler', function() {
   var tracelogService = app.runner.getSandboxService('app-tracelog/tracelogService');
   var errorManager = app.runner.getSandboxService('app-errorlist/manager');
   var errorBuilder = errorManager.register('app-restguard', sandboxConfig);
+  var secretKeys = [ sandboxConfig.secretKey ];
 
   describe('verifyAccessToken()', function() {
     var Handler, verifyAccessToken;
-    var serviceContext = lodash.assign({ sandboxConfig, errorBuilder, tracelogService }, ctx);
+    var serviceContext = lodash.assign({ sandboxConfig, secretKeys, errorBuilder, tracelogService }, ctx);
 
     beforeEach(function() {
       Handler = dtk.acquire('handler');
@@ -186,6 +187,44 @@ describe('handler', function() {
       assert.isObject(result.token);
       assert.deepInclude(result.token, data);
       assert.isUndefined(result.error);
+    });
+
+    it('support using multiple secretKeys to validate a accessToken (passed)', function () {
+      var data = { message: 'example' };
+      var req = new ExpressRequestMock({
+        headers: {
+          'X-Access-Token': createAccessToken(data, sandboxConfig.secretKey, 120000)
+        }
+      });
+      var serviceContextCopied = lodash.cloneDeep(serviceContext);
+      serviceContextCopied.secretKeys = [
+        'unknown',
+        'invalid',
+        serviceContextCopied.sandboxConfig.secretKey
+      ];
+      var result = verifyAccessToken(req, serviceContextCopied);
+      assert.isObject(result.token);
+      assert.deepInclude(result.token, data);
+      assert.isUndefined(result.error);
+    });
+
+    it('support using multiple secretKeys to validate a accessToken (failed)', function () {
+      var data = { message: 'example' };
+      var req = new ExpressRequestMock({
+        headers: {
+          'X-Access-Token': createAccessToken(data, sandboxConfig.secretKey, 120000)
+        }
+      });
+      var serviceContextCopied = lodash.cloneDeep(serviceContext);
+      serviceContextCopied.secretKeys = [
+        'invalid',
+        'unmatched',
+        'unknown'
+      ];
+      var result = verifyAccessToken(req, serviceContextCopied);
+      assert.isUndefined(result.token);
+      assert.isObject(result.error);
+      assert.equal(result.error.name, 'JsonWebTokenError');
     });
 
     it('throw a JsonWebTokenError if an unmatched secretKey provided', function () {

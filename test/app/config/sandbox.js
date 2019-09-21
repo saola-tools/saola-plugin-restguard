@@ -39,7 +39,12 @@ module.exports = {
         }
       },
       ignoreExpiration: true,
-      secretKey: 'dobietday',
+      secretKey: 'dobietday-skipped',
+      deprecatedKeys: [
+        'invalid',
+        'dobietday',
+        'deprecated'
+      ],
       authorization: {
         enabled: true,
         permissionLocation: ['permissions'],

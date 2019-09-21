@@ -13,12 +13,27 @@ function Handler(params = {}) {
   const T = loggingFactory.getTracer();
 
   const bypassingRules = extractBypassingRules(sandboxConfig);
+  L.has('silly') && L.log('silly', T.add({ bypassingRules }).toMessage({
+    tmpl: 'The bypassingRules: ${bypassingRules}'
+  }));
 
   const errorBuilder = errorManager.register(packageName, {
     errorCodes: sandboxConfig.errorCodes
   });
 
-  const serviceContext = { L, T, sandboxConfig, errorBuilder, tracelogService };
+  const secretKeys = [];
+  if (lodash.isString(sandboxConfig.secretKey)) {
+    secretKeys.push(sandboxConfig.secretKey);
+  }
+  if (lodash.isArray(sandboxConfig.deprecatedKeys)) {
+    for (const secretKey of sandboxConfig.deprecatedKeys) {
+      if (secretKey !== sandboxConfig.secretKey) {
+        secretKeys.push(secretKey);
+      }
+    }
+  }
+
+  const serviceContext = { L, T, sandboxConfig, secretKeys, errorBuilder, tracelogService };
 
   this.definePermCheckerMiddleware = function () {
     return function (req, res, next) {
@@ -195,28 +210,15 @@ function processError (res, err) {
   res.status(err.statusCode || 500).send(body);
 }
 
-const verifyAccessToken = function (req, serviceContext) {
-  const { sandboxConfig, errorBuilder, tracelogService, L, T } = serviceContext;
+function verifyAccessToken (req, serviceContext) {
+  const { secretKeys, sandboxConfig, errorBuilder, tracelogService, L, T } = serviceContext;
   const requestId = tracelogService.getRequestId(req);
   L.has('silly') && L.log('silly', T.add({ requestId }).toMessage({
     tmpl: 'Req[${requestId}] - check header/url-params/post-body for access-token'
   }));
-  let token = req.get(sandboxConfig.accessTokenHeaderName) ||
-      req.query[sandboxConfig.accessTokenParamsName] ||
-      req.params[sandboxConfig.accessTokenParamsName] ||
-      (req.body && req.body[sandboxConfig.accessTokenParamsName]);
-  if (token) {
-    L.has('debug') && L.log('debug', T.add({ requestId, token }).toMessage({
-      tmpl: 'Req[${requestId}] - access-token found: [${token}]'
-    }));
-    let tokenOpts = {
-      ignoreExpiration: sandboxConfig.ignoreExpiration || false
-    };
-    L.has('debug') && L.log('debug', T.add({ requestId, tokenOpts }).toMessage({
-      tmpl: 'Req[${requestId}] - Call jwt.verify() with options: ${tokenOpts}'
-    }));
+  function trySecretKey (token, tokenOpts, secretKey) {
     try {
-      let tokenObject = jwt.verify(token, sandboxConfig.secretKey, tokenOpts);
+      let tokenObject = jwt.verify(token, secretKey, tokenOpts);
       L.has('debug') && L.log('debug', T.add({ requestId, tokenObject }).toMessage({
         tmpl: 'Req[${requestId}] - Verification passed, token: ${tokenObject}'
       }));
@@ -251,6 +253,29 @@ const verifyAccessToken = function (req, serviceContext) {
         error: errorBuilder.newError('JwtVerifyUnknownError', { language })
       };
     }
+  }
+  let token = req.get(sandboxConfig.accessTokenHeaderName) ||
+      req.query[sandboxConfig.accessTokenParamsName] ||
+      req.params[sandboxConfig.accessTokenParamsName] ||
+      (req.body && req.body[sandboxConfig.accessTokenParamsName]);
+  if (token) {
+    L.has('debug') && L.log('debug', T.add({ requestId, token }).toMessage({
+      tmpl: 'Req[${requestId}] - access-token found: [${token}]'
+    }));
+    let tokenOpts = {
+      ignoreExpiration: sandboxConfig.ignoreExpiration || false
+    };
+    L.has('debug') && L.log('debug', T.add({ requestId, tokenOpts }).toMessage({
+      tmpl: 'Req[${requestId}] - Call jwt.verify() with options: ${tokenOpts}'
+    }));
+    let result;
+    for (const secretKey of secretKeys) {
+      result = trySecretKey(token, tokenOpts, secretKey);
+      if (!(result && result.error && result.error.name === 'JsonWebTokenError')) {
+        break;
+      }
+    }
+    return result;
   } else {
     const language = extractLangCode(req);
     L.has('debug') && L.log('debug', T.add({ requestId }).toMessage({

@@ -21,7 +21,7 @@ npm run build && node test/app
 curl -v --request GET \
 --url http://localhost:7878/example/jwt/session-info \
 --header 'x-forwarded-host: example.com' \
---header 'x-access-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBUeXBlIjoiYWdlbnRBcHAiLCJwaG9uZU51bWJlciI6Iis4NDk3MzQwNzEzOSIsImV4cGlyZWRJbiI6NjAwLCJleHBpcmVkVGltZSI6IjIwMTktMDctMjlUMTY6MjQ6MTkuMTYyWiIsInVzZXJJZCI6IjVkMjUyZTQ4NTM2YjU0MmMyY2ViM2FiZiIsImhvbGRlcklkIjoiNWQzMzYzODJkM2NmZDE2ZmM2YmVhYTA3IiwiaWF0IjoxNTY0NDE2ODMxLCJleHAiOjE1NjQ0MTc0MzF9.b-ywZsOguwDABtXjoq02JlTLRt5HzEPHCjAZsdynPnw' \
+--header 'x-access-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBUeXBlIjoiYWdlbnRBcHAiLCJwaG9uZU51bWJlciI6Iis4NDk3MzQwNzEzOSIsImV4cGlyZWRJbiI6NjAwLCJleHBpcmVkVGltZSI6IjIwMTktMDctMjlUMTY6MjQ6MTkuMTYyWiIsInVzZXJJZCI6IjVkMjUyZTQ4NTM2YjU0MmMyY2ViM2FiZiIsImhvbGRlcklkIjoiNWQzMzYzODJkM2NmZDE2ZmM2YmVhYTA3IiwiaWF0IjoxNTY0NDE2ODMxLCJleHAiOjE1NjQ0MTc0MzF9.b-ywZsOguwDABtXjoq02JlTLRt5HzEPHCjAZsdynPnw'
 ```
 
 The output (X-Return-Code: 1001):
@@ -35,7 +35,6 @@ Note: Unnecessary use of -X or --request, GET is already inferred.
 > Host: localhost:7878
 > User-Agent: curl/7.58.0
 > Accept: */*
-> Cookie: sessionId=s%253AS9UX3mI8tpsf2B4k5QadpIV1DtAOAMSy.%252BKYFAu9mmzglDwllLLBCDrCDVToodArsrbk0pJmktV4
 > x-access-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBUeXBlIjoiYWdlbnRBcHAiLCJwaG9uZU51bWJlciI6Iis4NDk3MzQwNzEzOSIsImV4cGlyZWRJbiI6NjAwLCJleHBpcmVkVGltZSI6IjIwMTktMDctMjlUMTY6MjQ6MTkuMTYyWiIsInVzZXJJZCI6IjVkMjUyZTQ4NTM2YjU0MmMyY2ViM2FiZiIsImhvbGRlcklkIjoiNWQzMzYzODJkM2NmZDE2ZmM2YmVhYTA3IiwiaWF0IjoxNTY0NDE2ODMxLCJleHAiOjE1NjQ0MTc0MzF9.b-ywZsOguwDABtXjoq02JlTLRt5HzEPHCjAZsdynPnw
 > 
 < HTTP/1.1 401 Unauthorized

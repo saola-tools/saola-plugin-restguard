@@ -35,6 +35,12 @@ module.exports = {
           "secretKey": {
             "type": "string"
           },
+          "deprecatedKeys": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "ignoreExpiration": {
             "type": "boolean"
           },
