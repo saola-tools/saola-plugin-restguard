@@ -51,6 +51,39 @@ Note: Unnecessary use of -X or --request, GET is already inferred.
 {"name":"TokenExpiredError","message":"access-token is expired"}
 ```
 
+#### bypass the authentication
+
+```shell
+curl -v --request GET \
+--url http://localhost:7878/example/jwt/session-info \
+--header 'x-access-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBUeXBlIjoiYWdlbnRBcHAiLCJwaG9uZU51bWJlciI6Iis4NDk3MzQwNzEzOSIsImV4cGlyZWRJbiI6NjAwLCJleHBpcmVkVGltZSI6IjIwMTktMDctMjlUMTY6MjQ6MTkuMTYyWiIsInVzZXJJZCI6IjVkMjUyZTQ4NTM2YjU0MmMyY2ViM2FiZiIsImhvbGRlcklkIjoiNWQzMzYzODJkM2NmZDE2ZmM2YmVhYTA3IiwiaWF0IjoxNTY0NDE2ODMxLCJleHAiOjE1NjQ0MTc0MzF9.b-ywZsOguwDABtXjoq02JlTLRt5HzEPHCjAZsdynPnw'
+```
+
+The output:
+
+```
+Note: Unnecessary use of -X or --request, GET is already inferred.
+*   Trying 127.0.0.1...
+* TCP_NODELAY set
+* Connected to localhost (127.0.0.1) port 7878 (#0)
+> GET /example/jwt/session-info HTTP/1.1
+> Host: localhost:7878
+> User-Agent: curl/7.58.0
+> Accept: */*
+> x-access-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBUeXBlIjoiYWdlbnRBcHAiLCJwaG9uZU51bWJlciI6Iis4NDk3MzQwNzEzOSIsImV4cGlyZWRJbiI6NjAwLCJleHBpcmVkVGltZSI6IjIwMTktMDctMjlUMTY6MjQ6MTkuMTYyWiIsInVzZXJJZCI6IjVkMjUyZTQ4NTM2YjU0MmMyY2ViM2FiZiIsImhvbGRlcklkIjoiNWQzMzYzODJkM2NmZDE2ZmM2YmVhYTA3IiwiaWF0IjoxNTY0NDE2ODMxLCJleHAiOjE1NjQ0MTc0MzF9.b-ywZsOguwDABtXjoq02JlTLRt5HzEPHCjAZsdynPnw
+> 
+< HTTP/1.1 404 Not Found
+< X-Request-Id: GbHG-xT4Srm31KMSdigedQ
+< Content-Type: application/json; charset=utf-8
+< Content-Length: 2
+< ETag: W/"2-vyGp6PvFo4RvsFtPoIWeCReyIC8"
+< Date: Sat, 21 Sep 2019 15:49:01 GMT
+< Connection: keep-alive
+< 
+* Connection #0 to host localhost left intact
+{}
+```
+
 #### `access-token is invalid`
 
 ```shell

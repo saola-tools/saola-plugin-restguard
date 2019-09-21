@@ -38,7 +38,7 @@ module.exports = {
           hostnames: [ 'example.com' ]
         }
       },
-      ignoreExpiration: true,
+      ignoreExpiration: false,
       secretKey: 'dobietday-skipped',
       deprecatedKeys: [
         'invalid',
