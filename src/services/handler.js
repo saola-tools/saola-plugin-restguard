@@ -5,6 +5,15 @@ const Promise = Devebot.require('bluebird');
 const lodash = Devebot.require('lodash');
 const jwt = require('jsonwebtoken');
 
+const JWT_TokenExpiredError = 'TokenExpiredError';
+const JWT_JsonWebTokenError = 'JsonWebTokenError';
+
+const REG_TokenExpiredError = 'TokenExpiredError';
+const REG_JsonWebTokenError = 'JsonWebTokenError';
+const REG_TokenNotFoundError = 'TokenNotFoundError';
+const REG_JwtUnknownError = 'JwtVerifyUnknownError';
+const REG_InsufficientError = 'InsufficientError';
+
 function Handler(params = {}) {
   const { loggingFactory, packageName, sandboxConfig } = params;
   const { errorManager, tracelogService, permissionChecker } = params;
@@ -46,7 +55,7 @@ function Handler(params = {}) {
       const passed = permissionChecker.checkPermissions(req);
       if (passed === null) return next();
       if (passed) return next();
-      processError(res, errorBuilder.newError('InsufficientError', {
+      processError(res, errorBuilder.newError(REG_InsufficientError, {
         language: extractLangCode(req)
       }));
     }
@@ -239,18 +248,18 @@ function verifyAccessToken (req, serviceContext) {
       }).toMessage({
         tmpl: 'Req[${requestId}] - Verification failed, error: ${error}'
       }));
-      if (error.name === 'TokenExpiredError') {
+      if (error.name === JWT_TokenExpiredError) {
         return {
-          error: errorBuilder.newError('TokenExpiredError', { language })
+          error: errorBuilder.newError(REG_TokenExpiredError, { language })
         };
       }
-      if (error.name === 'JsonWebTokenError') {
+      if (error.name === JWT_JsonWebTokenError) {
         return {
-          error: errorBuilder.newError('JsonWebTokenError', { language })
+          error: errorBuilder.newError(REG_JsonWebTokenError, { language })
         };
       }
       return {
-        error: errorBuilder.newError('JwtVerifyUnknownError', { language })
+        error: errorBuilder.newError(REG_JwtUnknownError, { language })
       };
     }
   }
@@ -271,7 +280,7 @@ function verifyAccessToken (req, serviceContext) {
     let result;
     for (const secretKey of secretKeys) {
       result = trySecretKey(token, tokenOpts, secretKey);
-      if (!(result && result.error && result.error.name === 'JsonWebTokenError')) {
+      if (!(result && result.error && result.error.name === REG_JsonWebTokenError)) {
         break;
       }
     }
@@ -282,7 +291,7 @@ function verifyAccessToken (req, serviceContext) {
       tmpl: 'Req[${requestId}] - access-token not found'
     }));
     return {
-      error: errorBuilder.newError('TokenNotFoundError', { language })
+      error: errorBuilder.newError(REG_TokenNotFoundError, { language })
     };
   }
 }

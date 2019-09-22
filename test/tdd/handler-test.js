@@ -181,7 +181,7 @@ describe('handler', function() {
       var data = { message: 'example' };
       var req = new ExpressRequestMock({
         headers: {
-          'X-Access-Token': createAccessToken(data, sandboxConfig.secretKey, 120000)
+          'X-Access-Token': createAccessToken(data, sandboxConfig.secretKey, 60)
         }
       });
       var result = verifyAccessToken(req, serviceContext);
@@ -194,7 +194,7 @@ describe('handler', function() {
       var data = { message: 'example' };
       var req = new ExpressRequestMock({
         headers: {
-          'X-Access-Token': createAccessToken(data, sandboxConfig.secretKey, 120000)
+          'X-Access-Token': createAccessToken(data, sandboxConfig.secretKey, 60)
         }
       });
       var serviceContextCopied = lodash.cloneDeep(serviceContext);
@@ -213,7 +213,7 @@ describe('handler', function() {
       var data = { message: 'example' };
       var req = new ExpressRequestMock({
         headers: {
-          'X-Access-Token': createAccessToken(data, sandboxConfig.secretKey, 120000)
+          'X-Access-Token': createAccessToken(data, sandboxConfig.secretKey, 60)
         }
       });
       var serviceContextCopied = lodash.cloneDeep(serviceContext);
@@ -231,7 +231,7 @@ describe('handler', function() {
     it('throw a JsonWebTokenError if an unmatched secretKey provided', function () {
       var req = new ExpressRequestMock({
         headers: {
-          'X-Access-Token': createAccessToken({}, 'changeme', 120000)
+          'X-Access-Token': createAccessToken({}, 'changeme', 60)
         }
       });
       var result = verifyAccessToken(req, serviceContext);
