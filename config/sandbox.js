@@ -1,3 +1,4 @@
+const path = require('path');
 module.exports = {
   plugins: {
     appRestguard: {
@@ -35,6 +36,11 @@ module.exports = {
           statusCode: 403
         },
       }
-    }
+    },
+    appRestfetch: {
+      mappingStore: {
+        "handshake": path.join(__dirname, '../lib/mappings/restfetch/')
+      }
+    },
   }
 };

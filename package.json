@@ -41,6 +41,7 @@
   },
   "dependencies": {
     "app-errorlist": "^0.3.0",
+    "app-restfetch": "^0.3.3",
     "app-tracelog": "^0.3.0",
     "app-webweaver": "^0.3.0",
     "devebot": "^0.3.0",
