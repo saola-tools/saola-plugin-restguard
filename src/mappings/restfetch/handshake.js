@@ -6,7 +6,6 @@ const APP_TYPE = process.env.APP_TYPE;
 const HEADERS = {
   "Content-Type": "application/json",
   "Accept": "application/json",
-  "X-Request-Id": "3Qrm0mMLSnKEaeD5yBPZDg"
 };
 const TIMEOUT = process.env.TIMEOUT || 65000;
 module.exports = {
