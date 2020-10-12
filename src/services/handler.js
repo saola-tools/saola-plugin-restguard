@@ -53,11 +53,13 @@ function Handler(params = {}) {
         return next();
       }
       const passed = permissionChecker.checkPermissions(req);
-      if (passed === null) return next();
-      if (passed) return next();
-      processError(res, errorBuilder.newError(REG_InsufficientError, {
-        language: extractLangCode(req)
-      }));
+      passed.then(passed => {
+        if (passed === null) return next();
+        if (passed) return next();
+        processError(res, errorBuilder.newError(REG_InsufficientError, {
+          language: extractLangCode(req)
+        }));
+      })
     }
   }
 
