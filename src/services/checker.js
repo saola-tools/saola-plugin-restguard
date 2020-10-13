@@ -21,6 +21,7 @@ function Checker({ restfetchResolver, loggingFactory, sandboxConfig }) {
       compiledRules.push(compiledRule);
     }
   });
+
   let permissionExtractor = null;
   let permissionLocation = authorizationCfg.permissionLocation;
   let permissionGroupLocation = authorizationCfg.permissionGroupLocation;
@@ -58,14 +59,13 @@ function Checker({ restfetchResolver, loggingFactory, sandboxConfig }) {
 
   this.checkPermissions = function(req) {
     if (authorizationCfg.enabled === false) {
-      return null;
+      return Promise.resolve(null);
     }
-    for (let i = 0; i < compiledRules.length; i++) {
-      const rule = compiledRules[i];
-      if (req.url && req.url.match(rule.urlPattern)) {
-        if (lodash.isEmpty(rule.methods) || (req.method && rule.methods.indexOf(req.method) >= 0)) {
-          let getPermissions = permissionExtractor(req);
-          return getPermissions.then(permissions => {
+    return permissionExtractor(req).then(permissions => {
+      for (let i = 0; i < compiledRules.length; i++) {
+        const rule = compiledRules[i];
+        if (req.url && req.url.match(rule.urlPattern)) {
+          if (lodash.isEmpty(rule.methods) || (req.method && rule.methods.indexOf(req.method) >= 0)) {
             L.has('silly') && L.log('silly', T.add({ permissions }).toMessage({
               tmpl: 'extracted permissions: ${permissions}'
             }));
@@ -82,11 +82,11 @@ function Checker({ restfetchResolver, loggingFactory, sandboxConfig }) {
               return true;
             }
             return false;
-          })
+          }
         }
       }
-    }
-    return null;
+      return null;
+    })
   }
 };
 
