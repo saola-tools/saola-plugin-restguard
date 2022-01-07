@@ -32,7 +32,7 @@ function Checker({ restfetchResolver, loggingFactory, sandboxConfig }) {
     permissionExtractor = function(req) {
       let permissions = lodash.get(req[accessTokenObjectName], permissionLocation, []);
       let permissionGroupExtractor = lodash.get(req[accessTokenObjectName], permissionGroupLocation, []);
-      if (handshake) {
+      if (handshake && lodash.isFunction(handshake.getPermissionByGroups)) {
         return handshake.getPermissionByGroups(permissionGroupExtractor).then(permissionByGroups => {
           if (!lodash.isEmpty(permissionByGroups) && lodash.isArray(permissionByGroups)) {
             permissions = lodash.concat(permissions, permissionByGroups);

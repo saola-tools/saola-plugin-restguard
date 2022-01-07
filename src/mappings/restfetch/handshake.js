@@ -8,24 +8,29 @@ const HEADERS = {
   "Accept": "application/json",
 };
 const TIMEOUT = process.env.TIMEOUT || 65000;
-module.exports = {
-  methods: {
-    getPermissionByGroups: {
-      method: 'POST',
-      url: `${HANDSHAKE_URL}/handshake/auth/permission-groups/getPermission/${APP_TYPE}`,
-      timeout: TIMEOUT,
-      arguments: {
-        default: {
-          headers: HEADERS
-        },
-        transform: function(groups) {
-          return {
-            body: {
-              "groups": groups
-            }
-          };
-        }
+
+const conf = {
+  methods: {}
+};
+
+if (HANDSHAKE_URL) {
+  conf.methods.getPermissionByGroups = {
+    method: 'POST',
+    url: `${HANDSHAKE_URL}/handshake/auth/permission-groups/getPermission/${APP_TYPE}`,
+    timeout: TIMEOUT,
+    arguments: {
+      default: {
+        headers: HEADERS
+      },
+      transform: function(groups) {
+        return {
+          body: {
+            "groups": groups
+          }
+        };
       }
     }
   }
-};
+}
+
+module.exports = conf;

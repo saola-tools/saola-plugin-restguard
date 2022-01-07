@@ -185,7 +185,7 @@ function isBypassed (req, bypassingRules) {
 
   let excl = null;
   if ('exclusion' in bypassingRules) {
-    if (!matchFilter(req, bypassingRules['exclusion'])) {
+    if (matchFilter(req, bypassingRules['exclusion'])) {
       excl = true;
     } else {
       excl = false;
@@ -196,12 +196,12 @@ function isBypassed (req, bypassingRules) {
     return false;
   }
   if (incl === null) {
-    return excl;
+    return !excl;
   }
   if (excl === null) {
     return incl;
   }
-  return incl && excl;
+  return incl && !excl;
 }
 
 function processError (res, err) {

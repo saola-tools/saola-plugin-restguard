@@ -34,6 +34,9 @@ module.exports = {
         contextPath + '/jwt/authorized*',
       ],
       bypassingRules: {
+        inclusion: {
+          hostnames: /.+\.internal$/
+        },
         exclusion: {
           hostnames: [ 'example.com' ]
         }
