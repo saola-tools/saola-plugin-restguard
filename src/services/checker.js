@@ -25,7 +25,8 @@ function Checker({ restfetchResolver, loggingFactory, sandboxConfig }) {
   let permissionExtractor = null;
   let permissionLocation = authorizationCfg.permissionLocation;
   let permissionGroupLocation = authorizationCfg.permissionGroupLocation;
-  if ((lodash.isArray(permissionLocation) && !lodash.isEmpty(permissionLocation)) || (lodash.isArray(permissionGroupLocation) && !lodash.isEmpty())) {
+  if ((lodash.isArray(permissionLocation) && !lodash.isEmpty(permissionLocation)) ||
+      (lodash.isArray(permissionGroupLocation) && !lodash.isEmpty(permissionGroupLocation))) {
     L.has('silly') && L.log('silly', T.add({ permissionLocation, permissionGroupLocation }).toMessage({
       tmpl: 'The path to permissions list: ${permissionLocation} and permissionGroups list: ${permissionGroupLocation}',
     }));

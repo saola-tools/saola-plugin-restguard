@@ -6,6 +6,10 @@ module.exports = {
   "config": {
     "validation": {
       "checkConstraints": function (cfg) {
+        var enabled = lodash.get(cfg, ['plugins', 'appRestguard', 'enabled']);
+        if (!enabled) {
+          return true;
+        }
         var secretKey = lodash.get(cfg, ['plugins', 'appRestguard', 'secretKey']);
         return secretKey !== 'changeme';
       },

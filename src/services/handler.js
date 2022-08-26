@@ -35,9 +35,9 @@ function Handler(params = {}) {
     secretKeys.push(sandboxConfig.secretKey);
   }
   if (lodash.isArray(sandboxConfig.deprecatedKeys)) {
-    for (const secretKey of sandboxConfig.deprecatedKeys) {
-      if (secretKey !== sandboxConfig.secretKey) {
-        secretKeys.push(secretKey);
+    for (const deprecatedKey of sandboxConfig.deprecatedKeys) {
+      if (deprecatedKey !== sandboxConfig.secretKey) {
+        secretKeys.push(deprecatedKey);
       }
     }
   }
