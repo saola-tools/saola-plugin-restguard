@@ -5,6 +5,8 @@ const Promise = Devebot.require('bluebird');
 const lodash = Devebot.require('lodash');
 const jwt = require('jsonwebtoken');
 
+const chores = require('../utils/chores');
+
 const JWT_TokenExpiredError = 'TokenExpiredError';
 const JWT_JsonWebTokenError = 'JsonWebTokenError';
 
@@ -34,8 +36,9 @@ function Handler(params = {}) {
   if (lodash.isString(sandboxConfig.secretKey)) {
     secretKeys.push(sandboxConfig.secretKey);
   }
-  if (lodash.isArray(sandboxConfig.deprecatedKeys)) {
-    for (const deprecatedKey of sandboxConfig.deprecatedKeys) {
+  const sandboxConfig_deprecatedKeys = chores.stringToArray(sandboxConfig.deprecatedKeys);
+  if (lodash.isArray(sandboxConfig_deprecatedKeys)) {
+    for (const deprecatedKey of sandboxConfig_deprecatedKeys) {
       if (deprecatedKey !== sandboxConfig.secretKey) {
         secretKeys.push(deprecatedKey);
       }
