@@ -52,6 +52,9 @@ module.exports = {
               }
             ]
           },
+          "expiresIn": {
+            "type": "number"
+          },
           "ignoreExpiration": {
             "type": "boolean"
           },
