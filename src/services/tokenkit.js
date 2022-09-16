@@ -37,10 +37,9 @@ function Service (params = {}) {
     });
     //
     const auth = {
-      access_token: jwt.sign(accessObject, secretKey, {
+      access_token: jwt.sign(accessObject, secretKey, Object.assign(lodash.pick(opts, jwt_sign_options_names), {
         expiresIn: expiresIn,
-        ...lodash.pick(opts, jwt_sign_options_names)
-      }),
+      })),
       expires_in: expiresIn,
       expired_time: expiredTime
     };
@@ -53,10 +52,9 @@ function Service (params = {}) {
     //
     const secretKey = opts.secretKey || config.secretKey;
     const ignoreExpiration = config.ignoreExpiration || undefined;
-    return jwt.verify(token, secretKey, {
+    return jwt.verify(token, secretKey, Object.assign(lodash.pick(opts, jwt_verify_options_names), {
       ignoreExpiration,
-      ...lodash.pick(opts, jwt_verify_options_names)
-    });
+    }));
   }
 }
 
