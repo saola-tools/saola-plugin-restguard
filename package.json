@@ -27,7 +27,7 @@
     "eslint": "eslint ./src/ --quiet"
   },
   "engines": {
-    "node": ">=4"
+    "node": ">=12"
   },
   "keywords": [
     "devebot",
@@ -35,6 +35,7 @@
   ],
   "peerDependencies": {
     "app-errorlist": "^0.3.0",
+    "app-restfetch": "^0.3.3",
     "app-tracelog": "^0.3.0",
     "app-webweaver": "^0.3.0",
     "devebot": "^0.3.0"
@@ -49,9 +50,10 @@
     "moment": "^2.29.4"
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-plugin-minify-mangle-names": "^0.3.0",
-    "babel-preset-env": "^1.6.1",
+    "@babel/cli": "^7.19.3",
+    "@babel/core": "^7.20.2",
+    "@babel/preset-env": "^7.20.2",
+    "babel-plugin-minify-mangle-names": "^0.5.1",
     "cross-env": "^5.2.0",
     "eslint": "^5.16.0",
     "eslint-config-standard": "^12.0.0",
@@ -59,7 +61,6 @@
     "eslint-plugin-node": "^7.0.1",
     "eslint-plugin-promise": "^4.0.1",
     "eslint-plugin-standard": "^4.0.0",
-    "liberica": "^0.3.0",
-    "mocha": "^6.1.4"
+    "mocha": "^10.1.0"
   }
 }

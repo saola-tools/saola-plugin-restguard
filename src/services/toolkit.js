@@ -58,8 +58,8 @@ function Service (params = {}) {
     //
     const secretKey = opts.secretKey || config.secretKey;
     //
-    let ignoreExpiration = lodash.isBoolean(opts.ignoreExpiration) ? opts.ignoreExpiration :
-        (lodash.isBoolean(config.ignoreExpiration) ? config.ignoreExpiration : undefined);
+    let ignoreExpiration = lodash.isBoolean(opts.ignoreExpiration) ? opts.ignoreExpiration
+        : (lodash.isBoolean(config.ignoreExpiration) ? config.ignoreExpiration : undefined);
     //
     return jwt.verify(token, secretKey, Object.assign(lodash.pick(opts, jwt_verify_options_names), {
       ignoreExpiration
