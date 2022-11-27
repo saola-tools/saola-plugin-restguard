@@ -1,6 +1,6 @@
 {
   "name": "app-restguard",
-  "version": "0.3.12",
+  "version": "0.4.0",
   "description": "The devebot Restful API guard",
   "homepage": "https://github.com/apporo/app-restguard.git",
   "license": "MIT",
@@ -20,8 +20,8 @@
   "scripts": {
     "build": "babel ./src -d ./lib",
     "clean": "rm -rf ./lib",
-    "prepublish": "npm run clean && npm run eslint && cross-env NODE_ENV=production npm run build",
-    "pretest": "npm run clean && npm run eslint && cross-env NODE_ENV=test npm run build",
+    "prepublish": "npm run clean && cross-env NODE_ENV=production npm run build",
+    "pretest": "npm run clean && cross-env NODE_ENV=test npm run build",
     "test": "mocha ./test/{bdd,tdd}/*test.js",
     "verify": "npm run prepublish && mocha ./test/{bdd,tdd}/*test.js",
     "eslint": "eslint ./src/ --quiet"
@@ -34,18 +34,18 @@
     "devebot-plugin"
   ],
   "peerDependencies": {
-    "app-errorlist": "^0.3.0",
-    "app-restfetch": "^0.3.3",
-    "app-tracelog": "^0.3.0",
-    "app-webweaver": "^0.3.0",
-    "devebot": "^0.3.0"
+    "app-errorlist": "^0.4.0",
+    "app-restfetch": "^0.4.0",
+    "app-tracelog": "^0.4.0",
+    "app-webweaver": "^0.4.0",
+    "devebot": "^0.4.0"
   },
   "dependencies": {
-    "app-errorlist": "^0.3.0",
-    "app-restfetch": "^0.3.3",
-    "app-tracelog": "^0.3.0",
-    "app-webweaver": "^0.3.0",
-    "devebot": "^0.3.0",
+    "app-errorlist": "^0.4.0",
+    "app-restfetch": "^0.4.0",
+    "app-tracelog": "^0.4.0",
+    "app-webweaver": "^0.4.0",
+    "devebot": "^0.4.0",
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.29.4"
   },
