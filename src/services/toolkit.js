@@ -1,8 +1,10 @@
 'use strict';
 
-const lodash = require('lodash');
-const moment = require('moment');
+const Devebot = require('devebot');
+const lodash = Devebot.require('lodash');
 const jwt = require('jsonwebtoken');
+
+const chores = require('../utils/chores');
 
 const jwt_sign_options_names = [
   'algorithms', 'expiresIn', 'notBefore', 'audience', 'issuer', 'jwtid',
@@ -28,10 +30,9 @@ function Service (params = {}) {
   this.encode = function(data, opts) {
     opts = opts || {};
     //
-    const now = moment();
     const secretKey = opts.secretKey || config.secretKey;
     const expiresIn = opts.expiresIn || config.expiresIn;
-    const expiredTime = now.add(expiresIn, "seconds").toDate();
+    const expiredTime = chores.getTimeAfter(expiresIn);
     //
     const accessObject = Object.assign({}, data, {
       [expiresInFieldName]: expiresIn,
