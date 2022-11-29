@@ -20,7 +20,7 @@ describe('handler', function() {
     var Handler, extractBypassingRules;
 
     beforeEach(function() {
-      Handler = dtk.acquire('handler');
+      Handler = dtk.acquire('handler', { libraryDir: '../lib' });
       extractBypassingRules = dtk.get(Handler, 'extractBypassingRules');
     });
 
@@ -70,7 +70,7 @@ describe('handler', function() {
     var Handler, isBypassed;
 
     beforeEach(function() {
-      Handler = dtk.acquire('handler');
+      Handler = dtk.acquire('handler', { libraryDir: '../lib' });
       isBypassed = dtk.get(Handler, 'isBypassed');
     });
 
@@ -173,7 +173,7 @@ describe('handler', function() {
     var serviceContext = lodash.assign({ sandboxConfig, secretKeys, errorBuilder, tracelogService }, ctx);
 
     beforeEach(function() {
-      Handler = dtk.acquire('handler');
+      Handler = dtk.acquire('handler', { libraryDir: '../lib' });
       verifyAccessToken = dtk.get(Handler, 'verifyAccessToken');
     });
 
