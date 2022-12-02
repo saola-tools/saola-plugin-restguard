@@ -1,13 +1,13 @@
 'use strict';
 
-var plugin = require('devebot').registerLayerware(__dirname, [
+const plugin = require('devebot').registerLayerware(__dirname, [
   'app-errorlist',
   'app-tracelog',
   'app-webweaver',
   'app-restfetch'
 ], []);
 
-var moduleMapping = {
+const moduleMapping = {
   helper: './lib/utils/chores.js'
 }
 

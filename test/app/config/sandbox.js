@@ -1,10 +1,10 @@
 'use strict';
 
-var Devebot = require('devebot');
-var lodash = Devebot.require('lodash');
-var chores = require('../../../lib/utils/chores.js');
-var contextPath = '/example';
-var accessTokenObjectName = 'ACCESS_TOKEN'; // default: 'accessToken'
+const Devebot = require('devebot');
+const lodash = Devebot.require('lodash');
+const chores = require('../../../lib/utils/chores.js');
+const contextPath = '/example';
+const accessTokenObjectName = 'ACCESS_TOKEN'; // default: 'accessToken'
 
 module.exports = {
   application: {

@@ -1,7 +1,7 @@
 'use strict';
 
-var Devebot = require('devebot');
-var lodash = Devebot.require('lodash');
+const Devebot = require('devebot');
+const lodash = Devebot.require('lodash');
 
 function Example(params) {
   params = params || {};
@@ -9,14 +9,14 @@ function Example(params) {
   const L = params.loggingFactory.getLogger();
   const T = params.loggingFactory.getTracer();
 
-  var restguardService = params.restguardService;
-  var express = params.webweaverService.express;
+  const restguardService = params.restguardService;
+  const express = params.webweaverService.express;
 
-  var pluginCfg = lodash.get(params, ['sandboxConfig'], {});
-  var contextPath = pluginCfg.contextPath || '/example';
-  var layers = [];
+  const pluginCfg = lodash.get(params, ['sandboxConfig'], {});
+  const contextPath = pluginCfg.contextPath || '/example';
+  const layers = [];
 
-  var router_jwt = express.Router();
+  const router_jwt = express.Router();
   router_jwt.route('/authorized').get(function(req, res, next) {
     L.has('silly') && L.log('silly', ' - request /jwt/authorized ...');
     res.json({ status: 200, message: 'authorized' });
