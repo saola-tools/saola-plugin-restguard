@@ -3,7 +3,7 @@
 const Devebot = require('devebot');
 const Promise = Devebot.require('bluebird');
 const lodash = Devebot.require('lodash');
-const jwt = require('jsonwebtoken');
+const { jsonwebtoken: jwt } = require('tokenlib');
 
 const chores = require('../utils/chores');
 

@@ -3,7 +3,7 @@
 const devebot = require('devebot');
 const Promise = devebot.require('bluebird');
 const lodash = devebot.require('lodash');
-const jwt = require('jsonwebtoken');
+const { jsonwebtoken: jwt } = require('tokenlib');
 const path = require('path');
 const assert = require('chai').assert;
 const dtk = require('liberica').mockit;

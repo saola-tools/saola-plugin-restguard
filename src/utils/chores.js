@@ -2,7 +2,7 @@
 
 const Devebot = require('devebot');
 const lodash = Devebot.require('lodash');
-const moment = require('moment');
+const { moment } = require('tokenlib');
 
 function Chores() {
   this.stringToArray = function (labels) {
