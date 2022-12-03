@@ -2,19 +2,7 @@
 
 const Devebot = require('devebot');
 const lodash = Devebot.require('lodash');
-const jwt = require('jsonwebtoken');
-
-const chores = require('../utils/chores');
-
-const jwt_sign_options_names = [
-  'algorithms', 'expiresIn', 'notBefore', 'audience', 'issuer', 'jwtid',
-  'subject', 'noTimestamp', 'header', 'keyid', 'mutatePayload'
-]
-
-const jwt_verify_options_names = [
-  'algorithms', 'audience', 'complete', 'issuer', 'ignoreExpiration', 'ignoreNotBefore',
-  'subject', 'clockTolerance', 'maxAge', 'clockTimestamp', 'nonce'
-]
+const { momentHelper, tokenHandler } = require('tokenlib');
 
 function Service (params = {}) {
   const { sandboxConfig, loggingFactory } = params;
@@ -32,7 +20,7 @@ function Service (params = {}) {
     //
     const secretKey = opts.secretKey || config.secretKey;
     const expiresIn = opts.expiresIn || config.expiresIn;
-    const expiredTime = chores.getTimeAfter(expiresIn);
+    const expiredTime = momentHelper.getTimeAfterCurrent(expiresIn);
     //
     const accessObject = Object.assign({}, data, {
       [expiresInFieldName]: expiresIn,
@@ -40,9 +28,7 @@ function Service (params = {}) {
     });
     //
     const auth = {
-      access_token: jwt.sign(accessObject, secretKey, Object.assign(lodash.pick(opts, jwt_sign_options_names), {
-        expiresIn: expiresIn,
-      })),
+      access_token: tokenHandler.encode(accessObject, secretKey, opts, config),
       expires_in: expiresIn,
       expired_time: expiredTime
     };
@@ -51,20 +37,13 @@ function Service (params = {}) {
   }
 
   this.decode = function(token, opts) {
-    return jwt.decode(token, lodash.pick(opts, ['json', 'complete']));
+    opts = opts || {};
+    return tokenHandler.decode(token, opts);
   }
 
   this.verify = function(token, opts) {
     opts = opts || {};
-    //
-    const secretKey = opts.secretKey || config.secretKey;
-    //
-    let ignoreExpiration = lodash.isBoolean(opts.ignoreExpiration) ? opts.ignoreExpiration
-        : (lodash.isBoolean(config.ignoreExpiration) ? config.ignoreExpiration : undefined);
-    //
-    return jwt.verify(token, secretKey, Object.assign(lodash.pick(opts, jwt_verify_options_names), {
-      ignoreExpiration
-    }));
+    return tokenHandler.verify(token, opts.secretKey || config.secretKey, opts, config);
   }
 }
 

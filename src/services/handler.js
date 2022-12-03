@@ -3,7 +3,7 @@
 const Devebot = require('devebot');
 const Promise = Devebot.require('bluebird');
 const lodash = Devebot.require('lodash');
-const { jsonwebtoken: jwt } = require('tokenlib');
+const { tokenHandler } = require('tokenlib');
 
 const chores = require('../utils/chores');
 
@@ -232,7 +232,7 @@ function verifyAccessToken (req, serviceContext) {
   }));
   function trySecretKey (token, tokenOpts, secretKey) {
     try {
-      let tokenObject = jwt.verify(token, secretKey, tokenOpts);
+      let tokenObject = tokenHandler.verify(token, secretKey, tokenOpts);
       L.has('debug') && L.log('debug', T.add({ requestId, tokenObject }).toMessage({
         tmpl: 'Req[${requestId}] - Verification passed, token: ${tokenObject}'
       }));
@@ -280,7 +280,7 @@ function verifyAccessToken (req, serviceContext) {
       ignoreExpiration: sandboxConfig.ignoreExpiration || false
     };
     L.has('debug') && L.log('debug', T.add({ requestId, tokenOpts }).toMessage({
-      tmpl: 'Req[${requestId}] - Call jwt.verify() with options: ${tokenOpts}'
+      tmpl: 'Req[${requestId}] - Call tokenHandler.verify() with options: ${tokenOpts}'
     }));
     let result;
     for (const secretKey of secretKeys) {

@@ -2,7 +2,6 @@
 
 const Devebot = require('devebot');
 const lodash = Devebot.require('lodash');
-const { moment } = require('tokenlib');
 
 function Chores() {
   this.stringToArray = function (labels) {
@@ -29,11 +28,6 @@ function Chores() {
       }
     }
     return data;
-  }
-  //
-  this.getTimeAfter = function(deltaInSeconds, timeString) {
-    const now = moment(timeString);
-    return now.add(deltaInSeconds, "seconds").toDate();
   }
 }
 
