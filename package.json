@@ -18,7 +18,7 @@
     "manifest.js"
   ],
   "scripts": {
-    "bootstrap": "npm install && cd test && npm install",
+    "bootstrap": "npm install --ignore-scripts; cd test && npm install --ignore-scripts",
     "clean-modules": "rm -rf ./node_modules && rm ./package-lock.json",
     "build": "babel ./src -d ./lib",
     "clean": "rm -rf ./lib",
@@ -54,7 +54,7 @@
   },
   "devDependencies": {
     "@babel/cli": "^7.19.3",
-    "@babel/core": "^7.20.2",
+    "@babel/core": "^7.20.5",
     "@babel/preset-env": "^7.20.2",
     "babel-plugin-minify-mangle-names": "^0.5.1",
     "cross-env": "^5.2.0",
