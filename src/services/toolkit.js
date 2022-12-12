@@ -1,19 +1,27 @@
-'use strict';
+"use strict";
 
-const Devebot = require('devebot');
-const lodash = Devebot.require('lodash');
-const { momentHelper, tokenHandler } = require('tokenlib');
+const Devebot = require("devebot");
+const chores = Devebot.require("chores");
+const lodash = Devebot.require("lodash");
+const { momentHelper, tokenHandler } = require("tokenlib");
 
 function Service (params = {}) {
-  const { sandboxConfig, loggingFactory } = params;
+  const { packageName, sandboxConfig, loggingFactory } = params;
+
+  const blockRef = chores.getBlockRef(__filename, packageName);
   const L = loggingFactory.getLogger();
   const T = loggingFactory.getTracer();
 
-  const expiresInFieldName = sandboxConfig.expiresInFieldName || 'expiredIn';
+  const expiresInFieldName = sandboxConfig.expiresInFieldName || "expiredIn";
 
-  const config = lodash.pick(sandboxConfig, ['secretKey', 'expiresIn', 'ignoreExpiration']);
-  config.secretKey = config.secretKey || 't0ps3cr3t'
+  const config = lodash.pick(sandboxConfig, ["secretKey", "expiresIn", "ignoreExpiration"]);
+  config.secretKey = config.secretKey || "t0ps3cr3t";
   config.expiresIn = config.expiresIn || 60 * 60; // expires in 1 hour
+
+  L.has("silly") && L.log("silly", T.add({ blockRef }).toMessage({
+    tags: [ blockRef, "constructor" ],
+    text: " - toolkit[${blockRef}] is loading"
+  }));
 
   this.encode = function(data, opts) {
     opts = opts || {};
@@ -34,17 +42,17 @@ function Service (params = {}) {
     };
     //
     return auth;
-  }
+  };
 
   this.decode = function(token, opts) {
     opts = opts || {};
     return tokenHandler.decode(token, opts);
-  }
+  };
 
   this.verify = function(token, opts) {
     opts = opts || {};
     return tokenHandler.verify(token, opts.secretKey || config.secretKey, opts, config);
-  }
+  };
 }
 
 Service.referenceHash = {};

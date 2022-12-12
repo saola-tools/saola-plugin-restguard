@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 /** Import **/
 const HANDSHAKE_URL = process.env.HANDSHAKE_URL;
@@ -15,7 +15,7 @@ const conf = {
 
 if (HANDSHAKE_URL) {
   conf.methods.getPermissionByGroups = {
-    method: 'POST',
+    method: "POST",
     url: `${HANDSHAKE_URL}/handshake/auth/permission-groups/getPermission/${APP_TYPE}`,
     timeout: TIMEOUT,
     arguments: {
@@ -30,7 +30,7 @@ if (HANDSHAKE_URL) {
         };
       }
     }
-  }
+  };
 }
 
 module.exports = conf;

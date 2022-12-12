@@ -1,13 +1,13 @@
-'use strict';
+"use strict";
 
-const Devebot = require('devebot');
-const lodash = Devebot.require('lodash');
+const Devebot = require("devebot");
+const lodash = Devebot.require("lodash");
 
-function Checker({ restfetchResolver, loggingFactory, sandboxConfig }) {
+function Checker ({ restfetchResolver, loggingFactory, sandboxConfig }) {
   const L = loggingFactory.getLogger();
   const T = loggingFactory.getTracer();
 
-  let handshake = restfetchResolver.lookupService('handshake/handshake');
+  let handshake = restfetchResolver.lookupService("handshake/handshake");
 
   const authorizationCfg = sandboxConfig.authorization || {};
   const accessTokenObjectName = sandboxConfig.accessTokenObjectName;
@@ -16,8 +16,8 @@ function Checker({ restfetchResolver, loggingFactory, sandboxConfig }) {
   const compiledRules = [];
   lodash.forEach(declaredRules, function(rule) {
     if (rule.enabled != false) {
-      const compiledRule = lodash.omit(rule, ['url']);
-      compiledRule.urlPattern = new RegExp(rule.url || '/(.*)');
+      const compiledRule = lodash.omit(rule, ["url"]);
+      compiledRule.urlPattern = new RegExp(rule.url || "/(.*)");
       compiledRules.push(compiledRule);
     }
   });
@@ -27,8 +27,8 @@ function Checker({ restfetchResolver, loggingFactory, sandboxConfig }) {
   let permissionGroupLocation = authorizationCfg.permissionGroupLocation;
   if ((lodash.isArray(permissionLocation) && !lodash.isEmpty(permissionLocation)) ||
       (lodash.isArray(permissionGroupLocation) && !lodash.isEmpty(permissionGroupLocation))) {
-    L.has('silly') && L.log('silly', T.add({ permissionLocation, permissionGroupLocation }).toMessage({
-      tmpl: 'The path to permissions list: ${permissionLocation} and permissionGroups list: ${permissionGroupLocation}',
+    L.has("silly") && L.log("silly", T.add({ permissionLocation, permissionGroupLocation }).toMessage({
+      tmpl: "The path to permissions list: ${permissionLocation} and permissionGroups list: ${permissionGroupLocation}",
     }));
     permissionExtractor = function(req) {
       let permissions = lodash.get(req[accessTokenObjectName], permissionLocation, []);
@@ -45,17 +45,17 @@ function Checker({ restfetchResolver, loggingFactory, sandboxConfig }) {
       } else {
         return Promise.resolve(permissions);
       }
-    }
+    };
   } else if (lodash.isFunction(authorizationCfg.permissionExtractor)) {
-    L.has('silly') && L.log('silly', T.toMessage({
-      text: 'use the provided permissionExtractor() function'
+    L.has("silly") && L.log("silly", T.toMessage({
+      text: "use the provided permissionExtractor() function"
     }));
-    permissionExtractor = function(req) { return Promise.resolve(authorizationCfg.permissionExtractor(req)) };
+    permissionExtractor = function(req) { return Promise.resolve(authorizationCfg.permissionExtractor(req)); };
   } else {
-    L.has('silly') && L.log('silly', T.toMessage({
-      text: 'use the null returned permissionExtractor() function'
+    L.has("silly") && L.log("silly", T.toMessage({
+      text: "use the null returned permissionExtractor() function"
     }));
-    permissionExtractor = function(req) { return Promise.resolve(null); }
+    permissionExtractor = function(req) { return Promise.resolve(null); };
   }
 
   this.checkPermissions = function(req) {
@@ -67,18 +67,18 @@ function Checker({ restfetchResolver, loggingFactory, sandboxConfig }) {
         const rule = compiledRules[i];
         if (req.url && req.url.match(rule.urlPattern)) {
           if (lodash.isEmpty(rule.methods) || (req.method && rule.methods.indexOf(req.method) >= 0)) {
-            L.has('silly') && L.log('silly', T.add({ permissions }).toMessage({
-              tmpl: 'extracted permissions: ${permissions}'
+            L.has("silly") && L.log("silly", T.add({ permissions }).toMessage({
+              tmpl: "extracted permissions: ${permissions}"
             }));
             if (lodash.isEmpty(rule.permission)) {
-              L.has('silly') && L.log('silly', T.toMessage({
-                text: 'permission is empty, passed'
+              L.has("silly") && L.log("silly", T.toMessage({
+                text: "permission is empty, passed"
               }));
               return true;
             }
             if (lodash.isArray(permissions) && permissions.indexOf(rule.permission) >= 0) {
-              L.has('silly') && L.log('silly', T.add({ permission: rule.permission }).toMessage({
-                tmpl: 'permission accepted: ${permission}'
+              L.has("silly") && L.log("silly", T.add({ permission: rule.permission }).toMessage({
+                tmpl: "permission accepted: ${permission}"
               }));
               return true;
             }
@@ -87,9 +87,9 @@ function Checker({ restfetchResolver, loggingFactory, sandboxConfig }) {
         }
       }
       return null;
-    })
-  }
-};
+    });
+  };
+}
 
 Checker.referenceHash = {
   restfetchResolver: "app-restfetch/resolver"

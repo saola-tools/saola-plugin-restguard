@@ -1,22 +1,22 @@
-'use strict';
+"use strict";
 
-const Devebot = require('devebot');
-const Promise = Devebot.require('bluebird');
-const lodash = Devebot.require('lodash');
-const { tokenHandler } = require('tokenlib');
+const Devebot = require("devebot");
+const Promise = Devebot.require("bluebird");
+const lodash = Devebot.require("lodash");
+const { tokenHandler } = require("tokenlib");
 
-const chores = require('../utils/chores');
+const chores = require("../utils/chores");
 
-const JWT_TokenExpiredError = 'TokenExpiredError';
-const JWT_JsonWebTokenError = 'JsonWebTokenError';
+const JWT_TokenExpiredError = "TokenExpiredError";
+const JWT_JsonWebTokenError = "JsonWebTokenError";
 
-const REG_TokenExpiredError = 'TokenExpiredError';
-const REG_JsonWebTokenError = 'JsonWebTokenError';
-const REG_TokenNotFoundError = 'TokenNotFoundError';
-const REG_JwtUnknownError = 'JwtVerifyUnknownError';
-const REG_InsufficientError = 'InsufficientError';
+const REG_TokenExpiredError = "TokenExpiredError";
+const REG_JsonWebTokenError = "JsonWebTokenError";
+const REG_TokenNotFoundError = "TokenNotFoundError";
+const REG_JwtUnknownError = "JwtVerifyUnknownError";
+const REG_InsufficientError = "InsufficientError";
 
-function Handler(params = {}) {
+function Handler (params = {}) {
   const { loggingFactory, packageName, sandboxConfig } = params;
   const { errorManager, tracelogService, permissionChecker } = params;
 
@@ -24,8 +24,8 @@ function Handler(params = {}) {
   const T = loggingFactory.getTracer();
 
   const bypassingRules = extractBypassingRules(sandboxConfig);
-  L.has('silly') && L.log('silly', T.add({ bypassingRules }).toMessage({
-    tmpl: 'The bypassingRules: ${bypassingRules}'
+  L.has("silly") && L.log("silly", T.add({ bypassingRules }).toMessage({
+    tmpl: "The bypassingRules: ${bypassingRules}"
   }));
 
   const errorBuilder = errorManager.register(packageName, {
@@ -62,9 +62,9 @@ function Handler(params = {}) {
         processError(res, errorBuilder.newError(REG_InsufficientError, {
           language: extractLangCode(req)
         }));
-      })
-    }
-  }
+      });
+    };
+  };
 
   this.defineAccessTokenMiddleware = function () {
     const self = this;
@@ -85,8 +85,8 @@ function Handler(params = {}) {
       .catch(function (err) {
         processError(res, err);
       });
-    }
-  }
+    };
+  };
 
   this.verifyAccessToken = function (req, { promiseEnabled }) {
     const result = verifyAccessToken(req, serviceContext);
@@ -98,28 +98,28 @@ function Handler(params = {}) {
     } else {
       return result;
     }
-  }
+  };
 }
 
 Handler.referenceHash = {
-  permissionChecker: 'checker',
-  tracelogService: 'app-tracelog/tracelogService',
-  errorManager: 'app-errorlist/manager',
+  permissionChecker: "checker",
+  tracelogService: "app-tracelog/tracelogService",
+  errorManager: "app-errorlist/manager",
 };
 
 module.exports = Handler;
 
 function extractLangCode (req) {
-  return req.get('X-Lang-Code') || req.get('X-Language-Code') || req.get('X-Language');
+  return req.get("X-Lang-Code") || req.get("X-Language-Code") || req.get("X-Language");
 }
 
-const RULE_FIELD_HOSTNAMES = 'hostnames';
-const RULE_FIELD_IPS = 'ips';
+const RULE_FIELD_HOSTNAMES = "hostnames";
+const RULE_FIELD_IPS = "ips";
 
 function extractBypassingRules (sandboxConfig) {
-  let bypassingRules = lodash.get(sandboxConfig, ['bypassingRules'], {});
-  bypassingRules = lodash.pick(bypassingRules, ['enabled', 'exclusion', 'inclusion']);
-  for (const filterName of ['exclusion', 'inclusion']) {
+  let bypassingRules = lodash.get(sandboxConfig, ["bypassingRules"], {});
+  bypassingRules = lodash.pick(bypassingRules, ["enabled", "exclusion", "inclusion"]);
+  for (const filterName of ["exclusion", "inclusion"]) {
     for (const ruleName of [RULE_FIELD_HOSTNAMES, RULE_FIELD_IPS]) {
       if (bypassingRules[filterName]) {
         const ruleValue = bypassingRules[filterName][ruleName];
@@ -139,7 +139,7 @@ function extractBypassingRules (sandboxConfig) {
         }
         bypassingRules[filterName][ruleName] = null;
       }
-    };
+    }
   }
   return bypassingRules;
 }
@@ -149,7 +149,7 @@ function matchFilter (req, bypassingFilter) {
   if (bypassingFilter) {
     if (bypassingFilter[RULE_FIELD_HOSTNAMES]) {
       if (bypassingFilter[RULE_FIELD_HOSTNAMES] instanceof RegExp) {
-        if (typeof req.hostname === 'string') {
+        if (typeof req.hostname === "string") {
           if (req.hostname.match(bypassingFilter[RULE_FIELD_HOSTNAMES])) {
             matched = true;
           }
@@ -178,8 +178,8 @@ function isBypassed (req, bypassingRules) {
   }
 
   let incl = null;
-  if ('inclusion' in bypassingRules) {
-    if (matchFilter(req, bypassingRules['inclusion'])) {
+  if ("inclusion" in bypassingRules) {
+    if (matchFilter(req, bypassingRules["inclusion"])) {
       incl = true;
     } else {
       incl = false;
@@ -187,8 +187,8 @@ function isBypassed (req, bypassingRules) {
   }
 
   let excl = null;
-  if ('exclusion' in bypassingRules) {
-    if (matchFilter(req, bypassingRules['exclusion'])) {
+  if ("exclusion" in bypassingRules) {
+    if (matchFilter(req, bypassingRules["exclusion"])) {
       excl = true;
     } else {
       excl = false;
@@ -209,15 +209,15 @@ function isBypassed (req, bypassingRules) {
 
 function processError (res, err) {
   if (err.packageRef) {
-    res.set('X-Package-Ref', err.packageRef);
+    res.set("X-Package-Ref", err.packageRef);
   }
   if (err.returnCode) {
-    res.set('X-Return-Code', err.returnCode);
+    res.set("X-Return-Code", err.returnCode);
   }
   const body = {
     name: err.name,
     message: err.message
-  }
+  };
   if (err.payload) {
     body.payload = err.payload;
   }
@@ -227,31 +227,31 @@ function processError (res, err) {
 function verifyAccessToken (req, serviceContext) {
   const { secretKeys, sandboxConfig, errorBuilder, tracelogService, L, T } = serviceContext;
   const requestId = tracelogService.getRequestId(req);
-  L.has('silly') && L.log('silly', T.add({ requestId }).toMessage({
-    tmpl: 'Req[${requestId}] - check header/url-params/post-body for access-token'
+  L.has("silly") && L.log("silly", T.add({ requestId }).toMessage({
+    tmpl: "Req[${requestId}] - check header/url-params/post-body for access-token"
   }));
   function trySecretKey (token, tokenOpts, secretKey) {
     try {
       let tokenObject = tokenHandler.verify(token, secretKey, tokenOpts);
-      L.has('debug') && L.log('debug', T.add({ requestId, tokenObject }).toMessage({
-        tmpl: 'Req[${requestId}] - Verification passed, token: ${tokenObject}'
+      L.has("debug") && L.log("debug", T.add({ requestId, tokenObject }).toMessage({
+        tmpl: "Req[${requestId}] - Verification passed, token: ${tokenObject}"
       }));
       if (lodash.isFunction(sandboxConfig.accessTokenTransform)) {
         tokenObject = sandboxConfig.accessTokenTransform(tokenObject);
-        L.has('debug') && L.log('debug', T.add({ requestId, tokenObject }).toMessage({
-          tmpl: 'Req[${requestId}] - transformed token: ${tokenObject}'
+        L.has("debug") && L.log("debug", T.add({ requestId, tokenObject }).toMessage({
+          tmpl: "Req[${requestId}] - transformed token: ${tokenObject}"
         }));
       }
       req[sandboxConfig.accessTokenObjectName] = tokenObject;
       return { token: tokenObject };
     } catch (error) {
       const language = extractLangCode(req);
-      L.has('debug') && L.log('debug', T.add({
+      L.has("debug") && L.log("debug", T.add({
         requestId,
         language,
         error: { name: error.name, message: error.message }
       }).toMessage({
-        tmpl: 'Req[${requestId}] - Verification failed, error: ${error}'
+        tmpl: "Req[${requestId}] - Verification failed, error: ${error}"
       }));
       if (error.name === JWT_TokenExpiredError) {
         return {
@@ -273,14 +273,14 @@ function verifyAccessToken (req, serviceContext) {
       req.params[sandboxConfig.accessTokenParamsName] ||
       (req.body && req.body[sandboxConfig.accessTokenParamsName]);
   if (token) {
-    L.has('debug') && L.log('debug', T.add({ requestId, token }).toMessage({
-      tmpl: 'Req[${requestId}] - access-token found: [${token}]'
+    L.has("debug") && L.log("debug", T.add({ requestId, token }).toMessage({
+      tmpl: "Req[${requestId}] - access-token found: [${token}]"
     }));
     let tokenOpts = {
       ignoreExpiration: sandboxConfig.ignoreExpiration || false
     };
-    L.has('debug') && L.log('debug', T.add({ requestId, tokenOpts }).toMessage({
-      tmpl: 'Req[${requestId}] - Call tokenHandler.verify() with options: ${tokenOpts}'
+    L.has("debug") && L.log("debug", T.add({ requestId, tokenOpts }).toMessage({
+      tmpl: "Req[${requestId}] - Call tokenHandler.verify() with options: ${tokenOpts}"
     }));
     let result;
     for (const secretKey of secretKeys) {
@@ -292,8 +292,8 @@ function verifyAccessToken (req, serviceContext) {
     return result;
   } else {
     const language = extractLangCode(req);
-    L.has('debug') && L.log('debug', T.add({ requestId }).toMessage({
-      tmpl: 'Req[${requestId}] - access-token not found'
+    L.has("debug") && L.log("debug", T.add({ requestId }).toMessage({
+      tmpl: "Req[${requestId}] - access-token not found"
     }));
     return {
       error: errorBuilder.newError(REG_TokenNotFoundError, { language })

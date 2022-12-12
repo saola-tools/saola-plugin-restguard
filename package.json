@@ -22,11 +22,13 @@
     "clean-modules": "rm -rf ./node_modules && rm ./package-lock.json",
     "build": "babel ./src -d ./lib",
     "clean": "rm -rf ./lib",
-    "prepublish": "npm run clean && cross-env NODE_ENV=${DEVEBOT_NODE_ENV:-production} npm run build",
-    "pretest": "npm run clean && cross-env NODE_ENV=${DEVEBOT_NODE_ENV:-test} npm run build",
-    "test": "cd test && npm exec -- mocha --recursive ./**/*-test.js",
-    "verify": "npm run prepublish && npm run test",
-    "eslint": "npm exec -- eslint ./src/ --quiet"
+    "eslint": "npm exec -- eslint ./src index.js",
+    "eslint-silent": "npm exec -- eslint --quiet ./src index.js",
+    "testOnly": "cd test && npm exec -- mocha --recursive ./**/*-test.js",
+    "verify": "npm run prepublishOnly && npm run testOnly",
+    "prepublishOnly": "npm run eslint-silent && npm run clean && cross-env NODE_ENV=${DEVEBOT_NODE_ENV:-production} npm run build",
+    "pretest": "npm run eslint-silent && npm run clean && cross-env NODE_ENV=${DEVEBOT_NODE_ENV:-test} npm run build",
+    "test": "npm run testOnly"
   },
   "engines": {
     "node": ">=12"
@@ -61,6 +63,7 @@
     "eslint-plugin-import": "^2.14.0",
     "eslint-plugin-node": "^7.0.1",
     "eslint-plugin-promise": "^4.0.1",
+    "eslint-plugin-security": "^1.5.0",
     "eslint-plugin-standard": "^4.0.0"
   }
 }
