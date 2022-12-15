@@ -1,37 +1,37 @@
-const path = require('path');
+const path = require("path");
 module.exports = {
   plugins: {
     appRestguard: {
       enabled: true,
-      accessTokenObjectName: 'accessToken',
-      accessTokenHeaderName: 'x-access-token',
-      accessTokenParamsName: 'token',
-      allowPublicAccessName: 'publicResource',
+      accessTokenObjectName: "accessToken",
+      accessTokenHeaderName: "x-access-token",
+      accessTokenParamsName: "token",
+      allowPublicAccessName: "publicResource",
       ignoreExpiration: false,
-      secretKey: 'changeme',
+      secretKey: "changeme",
       errorCodes: {
         TokenExpiredError: {
-          message: 'access-token is expired',
+          message: "access-token is expired",
           returnCode: 1001,
           statusCode: 401
         },
         JsonWebTokenError: {
-          message: 'access-token is invalid',
+          message: "access-token is invalid",
           returnCode: 1002,
           statusCode: 401
         },
         TokenNotFoundError: {
-          message: 'access-token not found',
+          message: "access-token not found",
           returnCode: 1003,
           statusCode: 401
         },
         JwtVerifyUnknownError: {
-          message: 'jwt.verify() unknown error',
+          message: "jwt.verify() unknown error",
           returnCode: 1004,
           statusCode: 401
         },
         InsufficientError: {
-          message: 'Insufficient permissions to access',
+          message: "Insufficient permissions to access",
           returnCode: 1010,
           statusCode: 403
         },
@@ -39,7 +39,7 @@ module.exports = {
     },
     appRestfetch: {
       mappingStore: {
-        "handshake": path.join(__dirname, '../lib/mappings/restfetch/')
+        "handshake": path.join(__dirname, "../lib/mappings/restfetch/")
       }
     },
   }

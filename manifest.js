@@ -11,7 +11,7 @@ module.exports = {
           return true;
         }
         const secretKey = lodash.get(cfg, ['plugins', 'appRestguard', 'secretKey']);
-        return secretKey !== 'changeme';
+        return secretKey !== 'password';
       },
       "schema": {
         "type": "object",

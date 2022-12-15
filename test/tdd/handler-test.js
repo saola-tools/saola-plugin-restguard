@@ -161,8 +161,10 @@ describe('handler', function() {
     });
   });
 
-  const app = require(path.join(__dirname, '../app'));
+  const app = require(path.join(__dirname, '../../server.js'));
   const sandboxConfig = lodash.get(app.config, ['sandbox', 'default', 'plugins', 'appRestguard']);
+  false && console.log(JSON.stringify(sandboxConfig, null, 2));
+
   const tracelogService = app.runner.getSandboxService('app-tracelog/tracelogService');
   const errorManager = app.runner.getSandboxService('app-errorlist/manager');
   const errorBuilder = errorManager.register('app-restguard', sandboxConfig);
@@ -231,7 +233,7 @@ describe('handler', function() {
     it('throw a JsonWebTokenError if an unmatched secretKey provided', function () {
       const req = new ExpressRequestMock({
         headers: {
-          'X-Access-Token': createAccessToken({}, 'changeme', 60)
+          'X-Access-Token': createAccessToken({}, sandboxConfig.secretKey + '-another', 60)
         }
       });
       const result = verifyAccessToken(req, serviceContext);
