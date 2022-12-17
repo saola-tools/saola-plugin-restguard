@@ -161,7 +161,7 @@ describe('handler', function() {
     });
   });
 
-  const app = require(path.join(__dirname, '../../server.js'));
+  const app = require(path.join(__dirname, '../../app'));
   const sandboxConfig = lodash.get(app.config, ['sandbox', 'default', 'plugins', 'appRestguard']);
   false && console.log(JSON.stringify(sandboxConfig, null, 2));
 
