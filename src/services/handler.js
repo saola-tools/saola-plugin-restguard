@@ -5,6 +5,8 @@ const Promise = Devebot.require("bluebird");
 const lodash = Devebot.require("lodash");
 const { tokenHandler } = require("tokenlib");
 
+const { PortletMixiner } = require("app-webserver").require("portlet");
+
 const chores = require("../utils/chores");
 
 const JWT_TokenExpiredError = "TokenExpiredError";
@@ -17,42 +19,70 @@ const REG_JwtUnknownError = "JwtVerifyUnknownError";
 const REG_InsufficientError = "InsufficientError";
 
 function Handler (params = {}) {
-  const { loggingFactory, packageName, sandboxConfig } = params;
-  const { errorManager, tracelogService, permissionChecker } = params;
+  const { configPortletifier, loggingFactory, packageName } = params;
+  const { errorManager, permissionChecker, tracelogService, webweaverService } = params;
 
   const L = loggingFactory.getLogger();
   const T = loggingFactory.getTracer();
 
-  const bypassingRules = extractBypassingRules(sandboxConfig);
+  const pluginConfig = configPortletifier.getPluginConfig();
+
+  PortletMixiner.call(this, {
+    pluginConfig,
+    portletForwarder: webweaverService,
+    portletArguments: { L, T, packageName, errorManager, permissionChecker, tracelogService },
+    PortletConstructor: Portlet,
+  });
+
+  this.definePermCheckerMiddleware = function () {
+    return this.hasPortlet() && this.getPortlet().definePermCheckerMiddleware() || undefined;
+  };
+
+  this.defineAccessTokenMiddleware = function () {
+    return this.hasPortlet() && this.getPortlet().defineAccessTokenMiddleware() || undefined;
+  };
+
+  this.verifyAccessToken = function (req, { promiseEnabled }) {
+    return this.hasPortlet() && this.getPortlet().verifyAccessToken(req, { promiseEnabled }) || undefined;
+  };
+}
+
+Object.assign(Handler.prototype, PortletMixiner.prototype);
+
+function Portlet (params = {}) {
+  const { portletConfig } = params;
+  const { L, T, packageName, errorManager, permissionChecker, tracelogService } = params;
+
+  const bypassingRules = extractBypassingRules(portletConfig);
   L.has("silly") && L.log("silly", T.add({ bypassingRules }).toMessage({
     tmpl: "The bypassingRules: ${bypassingRules}"
   }));
 
   const errorBuilder = errorManager.register(packageName, {
-    errorCodes: sandboxConfig.errorCodes
+    errorCodes: portletConfig.errorCodes
   });
 
   const secretKeys = [];
-  if (lodash.isString(sandboxConfig.secretKey)) {
-    secretKeys.push(sandboxConfig.secretKey);
+  if (lodash.isString(portletConfig.secretKey)) {
+    secretKeys.push(portletConfig.secretKey);
   }
-  const sandboxConfig_deprecatedKeys = chores.stringToArray(sandboxConfig.deprecatedKeys);
+  const sandboxConfig_deprecatedKeys = chores.stringToArray(portletConfig.deprecatedKeys);
   if (lodash.isArray(sandboxConfig_deprecatedKeys)) {
     for (const deprecatedKey of sandboxConfig_deprecatedKeys) {
-      if (deprecatedKey !== sandboxConfig.secretKey) {
+      if (deprecatedKey !== portletConfig.secretKey) {
         secretKeys.push(deprecatedKey);
       }
     }
   }
 
-  const serviceContext = { L, T, sandboxConfig, secretKeys, errorBuilder, tracelogService };
+  const serviceContext = { L, T, portletConfig, secretKeys, errorBuilder, tracelogService };
 
   this.definePermCheckerMiddleware = function () {
     return function (req, res, next) {
-      if (sandboxConfig.enabled === false) {
+      if (portletConfig.enabled === false) {
         return next();
       }
-      if (req[sandboxConfig.allowPublicAccessName]) {
+      if (req[portletConfig.allowPublicAccessName]) {
         return next();
       }
       const passed = permissionChecker.checkPermissions(req);
@@ -69,10 +99,10 @@ function Handler (params = {}) {
   this.defineAccessTokenMiddleware = function () {
     const self = this;
     return function (req, res, next) {
-      if (sandboxConfig.enabled === false) {
+      if (portletConfig.enabled === false) {
         return next();
       }
-      if (req[sandboxConfig.allowPublicAccessName]) {
+      if (req[portletConfig.allowPublicAccessName]) {
         return next();
       }
       if (isBypassed(req, bypassingRules)) {
@@ -102,9 +132,11 @@ function Handler (params = {}) {
 }
 
 Handler.referenceHash = {
+  configPortletifier: "portletifier",
   permissionChecker: "checker",
-  tracelogService: "app-tracelog/tracelogService",
   errorManager: "app-errorlist/manager",
+  tracelogService: "app-tracelog/tracelogService",
+  webweaverService: "app-webweaver/webweaverService",
 };
 
 module.exports = Handler;
@@ -116,8 +148,8 @@ function extractLangCode (req) {
 const RULE_FIELD_HOSTNAMES = "hostnames";
 const RULE_FIELD_IPS = "ips";
 
-function extractBypassingRules (sandboxConfig) {
-  let bypassingRules = lodash.get(sandboxConfig, ["bypassingRules"], {});
+function extractBypassingRules (portletConfig) {
+  let bypassingRules = lodash.get(portletConfig, ["bypassingRules"], {});
   bypassingRules = lodash.pick(bypassingRules, ["enabled", "exclusion", "inclusion"]);
   for (const filterName of ["exclusion", "inclusion"]) {
     for (const ruleName of [RULE_FIELD_HOSTNAMES, RULE_FIELD_IPS]) {
@@ -225,7 +257,7 @@ function processError (res, err) {
 }
 
 function verifyAccessToken (req, serviceContext) {
-  const { secretKeys, sandboxConfig, errorBuilder, tracelogService, L, T } = serviceContext;
+  const { secretKeys, portletConfig, errorBuilder, tracelogService, L, T } = serviceContext;
   const requestId = tracelogService.getRequestId(req);
   L.has("silly") && L.log("silly", T.add({ requestId }).toMessage({
     tmpl: "Req[${requestId}] - check header/url-params/post-body for access-token"
@@ -236,13 +268,13 @@ function verifyAccessToken (req, serviceContext) {
       L.has("debug") && L.log("debug", T.add({ requestId, tokenObject }).toMessage({
         tmpl: "Req[${requestId}] - Verification passed, token: ${tokenObject}"
       }));
-      if (lodash.isFunction(sandboxConfig.accessTokenTransform)) {
-        tokenObject = sandboxConfig.accessTokenTransform(tokenObject);
+      if (lodash.isFunction(portletConfig.accessTokenTransform)) {
+        tokenObject = portletConfig.accessTokenTransform(tokenObject);
         L.has("debug") && L.log("debug", T.add({ requestId, tokenObject }).toMessage({
           tmpl: "Req[${requestId}] - transformed token: ${tokenObject}"
         }));
       }
-      req[sandboxConfig.accessTokenObjectName] = tokenObject;
+      req[portletConfig.accessTokenObjectName] = tokenObject;
       return { token: tokenObject };
     } catch (error) {
       const language = extractLangCode(req);
@@ -268,16 +300,16 @@ function verifyAccessToken (req, serviceContext) {
       };
     }
   }
-  let token = req.get(sandboxConfig.accessTokenHeaderName) ||
-      req.query[sandboxConfig.accessTokenParamsName] ||
-      req.params[sandboxConfig.accessTokenParamsName] ||
-      (req.body && req.body[sandboxConfig.accessTokenParamsName]);
+  let token = req.get(portletConfig.accessTokenHeaderName) ||
+      req.query[portletConfig.accessTokenParamsName] ||
+      req.params[portletConfig.accessTokenParamsName] ||
+      (req.body && req.body[portletConfig.accessTokenParamsName]);
   if (token) {
     L.has("debug") && L.log("debug", T.add({ requestId, token }).toMessage({
       tmpl: "Req[${requestId}] - access-token found: [${token}]"
     }));
     let tokenOpts = {
-      ignoreExpiration: sandboxConfig.ignoreExpiration || false
+      ignoreExpiration: portletConfig.ignoreExpiration || false
     };
     L.has("debug") && L.log("debug", T.add({ requestId, tokenOpts }).toMessage({
       tmpl: "Req[${requestId}] - Call tokenHandler.verify() with options: ${tokenOpts}"

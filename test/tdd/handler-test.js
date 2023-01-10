@@ -1,15 +1,14 @@
 "use strict";
 
+const path = require("path");
 const devebot = require("devebot");
 const Promise = devebot.require("bluebird");
 const lodash = devebot.require("lodash");
 const { jsonwebtoken: jwt } = require("tokenlib");
-const path = require("path");
-const assert = require("chai").assert;
-const dtk = require("liberica").mockit;
+const { assert, mockit } = require("liberica");
 
 describe("handler", function() {
-  const loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
+  const loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
   const ctx = {
     L: loggingFactory.getLogger(),
     T: loggingFactory.getTracer(),
@@ -20,8 +19,8 @@ describe("handler", function() {
     let Handler, extractBypassingRules;
 
     beforeEach(function() {
-      Handler = dtk.acquire("handler", { libraryDir: "../lib" });
-      extractBypassingRules = dtk.get(Handler, "extractBypassingRules");
+      Handler = mockit.acquire("handler", { libraryDir: "../lib" });
+      extractBypassingRules = mockit.get(Handler, "extractBypassingRules");
     });
 
     it("should transform the bypassingRules configuration properly", function () {
@@ -70,8 +69,8 @@ describe("handler", function() {
     let Handler, isBypassed;
 
     beforeEach(function() {
-      Handler = dtk.acquire("handler", { libraryDir: "../lib" });
-      isBypassed = dtk.get(Handler, "isBypassed");
+      Handler = mockit.acquire("handler", { libraryDir: "../lib" });
+      isBypassed = mockit.get(Handler, "isBypassed");
     });
 
     it("should skip bypassing if the enabled is false", function () {
@@ -162,28 +161,28 @@ describe("handler", function() {
   });
 
   const app = require(path.join(__dirname, "../../app"));
-  const sandboxConfig = lodash.get(app.config, ["sandbox", "default", "plugins", "appRestguard"]);
-  false && console.log(JSON.stringify(sandboxConfig, null, 2));
+  const portletConfig = lodash.get(app.config, ["sandbox", "default", "plugins", "appRestguard"]);
+  false && console.log(JSON.stringify(portletConfig, null, 2));
 
   const tracelogService = app.runner.getSandboxService("app-tracelog/tracelogService");
   const errorManager = app.runner.getSandboxService("app-errorlist/manager");
-  const errorBuilder = errorManager.register("app-restguard", sandboxConfig);
-  const secretKeys = [ sandboxConfig.secretKey ];
+  const errorBuilder = errorManager.register("app-restguard", portletConfig);
+  const secretKeys = [ portletConfig.secretKey ];
 
   describe("verifyAccessToken()", function() {
     let Handler, verifyAccessToken;
-    const serviceContext = lodash.assign({ sandboxConfig, secretKeys, errorBuilder, tracelogService }, ctx);
+    const serviceContext = lodash.assign({ portletConfig, secretKeys, errorBuilder, tracelogService }, ctx);
 
     beforeEach(function() {
-      Handler = dtk.acquire("handler", { libraryDir: "../lib" });
-      verifyAccessToken = dtk.get(Handler, "verifyAccessToken");
+      Handler = mockit.acquire("handler", { libraryDir: "../lib" });
+      verifyAccessToken = mockit.get(Handler, "verifyAccessToken");
     });
 
     it("return ok when a valid accessToken provided", function () {
       const data = { message: "example" };
       const req = new ExpressRequestMock({
         headers: {
-          "X-Access-Token": createAccessToken(data, sandboxConfig.secretKey, 60)
+          "X-Access-Token": createAccessToken(data, portletConfig.secretKey, 60)
         }
       });
       const result = verifyAccessToken(req, serviceContext);
@@ -196,14 +195,14 @@ describe("handler", function() {
       const data = { message: "example" };
       const req = new ExpressRequestMock({
         headers: {
-          "X-Access-Token": createAccessToken(data, sandboxConfig.secretKey, 60)
+          "X-Access-Token": createAccessToken(data, portletConfig.secretKey, 60)
         }
       });
       const serviceContextCopied = lodash.cloneDeep(serviceContext);
       serviceContextCopied.secretKeys = [
         "unknown",
         "invalid",
-        serviceContextCopied.sandboxConfig.secretKey
+        serviceContextCopied.portletConfig.secretKey
       ];
       const result = verifyAccessToken(req, serviceContextCopied);
       assert.isObject(result.token);
@@ -215,7 +214,7 @@ describe("handler", function() {
       const data = { message: "example" };
       const req = new ExpressRequestMock({
         headers: {
-          "X-Access-Token": createAccessToken(data, sandboxConfig.secretKey, 60)
+          "X-Access-Token": createAccessToken(data, portletConfig.secretKey, 60)
         }
       });
       const serviceContextCopied = lodash.cloneDeep(serviceContext);
@@ -233,7 +232,7 @@ describe("handler", function() {
     it("throw a JsonWebTokenError if an unmatched secretKey provided", function () {
       const req = new ExpressRequestMock({
         headers: {
-          "X-Access-Token": createAccessToken({}, sandboxConfig.secretKey + "-another", 60)
+          "X-Access-Token": createAccessToken({}, portletConfig.secretKey + "-another", 60)
         }
       });
       const result = verifyAccessToken(req, serviceContext);
@@ -246,13 +245,13 @@ describe("handler", function() {
       const data = { message: "example" };
       const req = new ExpressRequestMock({
         headers: {
-          "X-Access-Token": createAccessToken(data, sandboxConfig.secretKey, 1) // 1 second
+          "X-Access-Token": createAccessToken(data, portletConfig.secretKey, 1) // 1 second
         }
       });
       return Promise.resolve().delay(1100).then(function() {
         const serviceContextCopied = lodash.cloneDeep(serviceContext);
         serviceContextCopied.secretKeys = [
-          sandboxConfig.secretKey
+          portletConfig.secretKey
         ];
         const result = verifyAccessToken(req, serviceContextCopied);
         assert.isUndefined(result.token);

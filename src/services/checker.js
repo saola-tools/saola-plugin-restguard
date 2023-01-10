@@ -3,14 +3,39 @@
 const Devebot = require("devebot");
 const lodash = Devebot.require("lodash");
 
-function Checker ({ restfetchResolver, loggingFactory, sandboxConfig }) {
+const { PortletMixiner } = require("app-webserver").require("portlet");
+
+function Checker (params) {
+  const { configPortletifier, loggingFactory, restfetchResolver, webweaverService } = params || {};
+
   const L = loggingFactory.getLogger();
   const T = loggingFactory.getTracer();
 
+  const pluginConfig = configPortletifier.getPluginConfig();
+
+  PortletMixiner.call(this, {
+    pluginConfig,
+    portletForwarder: webweaverService,
+    portletArguments: { L, T, restfetchResolver },
+    PortletConstructor: Portlet,
+  });
+
+  // @deprecated
+  this.checkPermissions = function(req) {
+    return this.hasPortlet() && this.getPortlet().checkPermissions(req) || undefined;
+  };
+}
+
+Object.assign(Checker.prototype, PortletMixiner.prototype);
+
+function Portlet (params) {
+  const { portletConfig } = params;
+  const { L, T, restfetchResolver } = params;
+
   let handshake = restfetchResolver.lookupService("handshake/handshake");
 
-  const authorizationCfg = sandboxConfig.authorization || {};
-  const accessTokenObjectName = sandboxConfig.accessTokenObjectName;
+  const authorizationCfg = portletConfig.authorization || {};
+  const accessTokenObjectName = portletConfig.accessTokenObjectName;
 
   const declaredRules = authorizationCfg.permissionRules || [];
   const compiledRules = [];
@@ -92,7 +117,9 @@ function Checker ({ restfetchResolver, loggingFactory, sandboxConfig }) {
 }
 
 Checker.referenceHash = {
-  restfetchResolver: "app-restfetch/resolver"
+  configPortletifier: "portletifier",
+  restfetchResolver: "app-restfetch/resolver",
+  webweaverService: "app-webweaver/webweaverService"
 };
 
 module.exports = Checker;
