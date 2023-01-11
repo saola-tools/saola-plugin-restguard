@@ -25,8 +25,8 @@ describe("handler", function() {
 
     it("should transform the bypassingRules configuration properly", function () {
       assert.deepEqual(extractBypassingRules({}), {});
-      assert.deepEqual(extractBypassingRules({bypassingRules: 1024 }), {});
-      assert.deepEqual(extractBypassingRules({bypassingRules: { abc: 1, def: 2 } }), {});
+      assert.deepEqual(extractBypassingRules({ bypassingRules: 1024 }), {});
+      assert.deepEqual(extractBypassingRules({ bypassingRules: { abc: 1, def: 2 } }), {});
       assert.deepEqual(extractBypassingRules({
         bypassingRules: {
           inclusion: {

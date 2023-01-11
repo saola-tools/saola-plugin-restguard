@@ -1,10 +1,10 @@
-'use strict';
+"use strict";
 
-const Devebot = require('devebot');
-const lodash = Devebot.require('lodash');
-const chores = require('../../../lib/utils/chores.js');
-const contextPath = '/example';
-const accessTokenObjectName = 'ACCESS_TOKEN'; // default: 'accessToken'
+const Devebot = require("devebot");
+const lodash = Devebot.require("lodash");
+const chores = require("../../../lib/utils/chores.js");
+const contextPath = "/example";
+const accessTokenObjectName = "ACCESS_TOKEN"; // default: 'accessToken'
 
 module.exports = {
   application: {
@@ -14,15 +14,15 @@ module.exports = {
   plugins: {
     appRestguard: {
       enabled: true,
-      accessTokenDetailPath: '/-access-token-',
+      accessTokenDetailPath: "/-access-token-",
       accessTokenObjectName: accessTokenObjectName,
       accessTokenTransform: function (data) {
-        if (data && data.appType === 'adminApp') {
+        if (data && data.appType === "adminApp") {
           return chores.renameJsonFields(data, {
             "holderId": "operatorId"
           });
         }
-        if (data && data.appType === 'agentApp') {
+        if (data && data.appType === "agentApp") {
           return chores.renameJsonFields(data, {
             "holderId": "commissionerId"
           });
@@ -30,37 +30,37 @@ module.exports = {
         return data;
       },
       protectedPaths: [
-        contextPath + '/jwt/session-info',
-        contextPath + '/jwt/authorized*',
+        contextPath + "/jwt/session-info",
+        contextPath + "/jwt/authorized*",
       ],
       bypassingRules: {
         inclusion: {
           hostnames: /.+\.internal$/
         },
         exclusion: {
-          hostnames: [ 'example.com' ]
+          hostnames: [ "example.com" ]
         }
       },
       ignoreExpiration: false,
-      secretKey: 'dobietday-skipped',
+      secretKey: "dobietday-skipped",
       deprecatedKeys: [
-        'invalid',
-        'dobietday',
-        'deprecated'
+        "invalid",
+        "dobietday",
+        "deprecated"
       ],
       authorization: {
         enabled: true,
-        permissionLocation: ['permissions'],
+        permissionLocation: ["permissions"],
         permissionExtractor: function(req) {
-          return lodash.get(req, [accessTokenObjectName, 'permissions'], []);
+          return lodash.get(req, [accessTokenObjectName, "permissions"], []);
         },
         permissionRules: [
           {
             enabled: true,
-            url: '/jwt/authorized(.*)',
-            paths: [ '/jwt/authorized/:code' ],
-            methods: ['GET', 'POST'],
-            permission: 'VIEW_APPLICATION'
+            url: "/jwt/authorized(.*)",
+            paths: [ "/jwt/authorized/:code" ],
+            methods: ["GET", "POST"],
+            permission: "VIEW_APPLICATION"
           }
         ]
       }

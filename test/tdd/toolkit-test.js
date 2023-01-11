@@ -1,7 +1,6 @@
 "use strict";
 
-const assert = require("chai").assert;
-const mockit = require("liberica").mockit;
+const { assert, mockit } = require("liberica");
 const timekeeper = require("timekeeper");
 
 const servicesLocation = { libraryDir: "../lib" };
@@ -66,7 +65,7 @@ describe("toolkit", function() {
         const configPortletifier = new Portletifier({ sandboxConfig });
         toolkit = new Toolkit({ configPortletifier, loggingFactory });
         assert.throws(function() {
-          const result = toolkit.verify(tc.token, { secretKey: "invalid" });
+          toolkit.verify(tc.token, { secretKey: "invalid" });
         }, Error, "invalid signature");
       });
     });
@@ -85,7 +84,7 @@ describe("toolkit", function() {
         const configPortletifier = new Portletifier({ sandboxConfig });
         toolkit = new Toolkit({ configPortletifier, loggingFactory });
         assert.throws(function() {
-          const result = toolkit.verify(tc.token);
+          toolkit.verify(tc.token);
         }, Error, "jwt expired");
       });
 

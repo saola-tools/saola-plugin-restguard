@@ -1,12 +1,12 @@
-'use strict';
+"use strict";
 
-const path = require('path');
+const path = require("path");
 
-const app = require('devebot').launchApplication({
+const app = require("devebot").launchApplication({
   appRootPath: __dirname
 }, [{
-  name: 'app-restguard',
-  path: path.join(__dirname, '../../index.js')
+  name: "app-restguard",
+  path: path.join(__dirname, "../../index.js")
 }]);
 
 if (require.main === module) app.server.start();
