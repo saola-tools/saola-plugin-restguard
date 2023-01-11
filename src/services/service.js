@@ -3,20 +3,63 @@
 const Devebot = require("devebot");
 const lodash = Devebot.require("lodash");
 
+const { PortletMixiner } = require("app-webserver").require("portlet");
+
 function Service (params = {}) {
-  const { loggingFactory, sandboxConfig, restguardHandler, webweaverService } = params;
-  const express = webweaverService.express;
+  const { configPortletifier, loggingFactory } = params;
+  const { restguardHandler, webweaverService } = params;
 
   const L = loggingFactory.getLogger();
   const T = loggingFactory.getTracer();
 
-  const publicPaths = lodash.get(sandboxConfig, ["publicPaths"], []);
+  const pluginConfig = configPortletifier.getPluginConfig();
 
-  let protectedPaths = lodash.get(sandboxConfig, ["protectedPaths"]);
+  PortletMixiner.call(this, {
+    pluginConfig,
+    portletForwarder: webweaverService,
+    portletArguments: { L, T, restguardHandler, webweaverService },
+    PortletConstructor: Portlet,
+  });
+
+  // @deprecated
+  this.buildAllowPublicLayer = function(branches) {
+    return this.hasPortlet() && this.getPortlet().buildAllowPublicLayer(branches) || undefined;
+  }
+
+  // @deprecated
+  this.buildAccessTokenLayer = function(branches) {
+    return this.hasPortlet() && this.getPortlet().buildAccessTokenLayer(branches) || undefined;
+  }
+
+  // @deprecated
+  this.buildTokenReaderLayer = function(branches) {
+    return this.hasPortlet() && this.getPortlet().buildTokenReaderLayer(branches) || undefined;
+  }
+
+  // @deprecated
+  this.buildPermCheckerLayer = function(branches) {
+    return this.hasPortlet() && this.getPortlet().buildPermCheckerLayer(branches) || undefined;
+  }
+
+  // @deprecated
+  this.push = function(layerOrBranches) {
+    return this.hasPortlet() && this.getPortlet().push(layerOrBranches) || undefined;
+  }
+}
+
+Object.assign(Service.prototype, PortletMixiner.prototype);
+
+function Portlet (params = {}) {
+  const { L, T, portletName, portletConfig, restguardHandler, webweaverService } = params;
+  const express = webweaverService.express;
+
+  const publicPaths = lodash.get(portletConfig, ["publicPaths"], []);
+
+  let protectedPaths = lodash.get(portletConfig, ["protectedPaths"]);
   if (lodash.isString(protectedPaths)) protectedPaths = [ protectedPaths ];
   if (!lodash.isArray(protectedPaths)) protectedPaths = [];
-  if (sandboxConfig.accessTokenDetailPath) {
-    protectedPaths.push(sandboxConfig.accessTokenDetailPath);
+  if (portletConfig.accessTokenDetailPath) {
+    protectedPaths.push(portletConfig.accessTokenDetailPath);
   }
 
   this.buildAllowPublicLayer = function(branches) {
@@ -33,57 +76,64 @@ function Service (params = {}) {
       name: "app-restguard-allow-public",
       path: publicPaths,
       middleware: function (req, res, next) {
-        req[sandboxConfig.allowPublicAccessName] = true;
+        req[portletConfig.allowPublicAccessName] = true;
         next();
       },
       branches: branches,
-      skipped: (sandboxConfig.enabled === false)
+      skipped: (portletConfig.enabled === false)
     };
   };
 
   this.buildAccessTokenLayer = function(branches) {
-    return {
-      name: "app-restguard-access-token",
-      path: protectedPaths,
-      middleware: restguardHandler.defineAccessTokenMiddleware(),
-      branches: branches,
-      skipped: (sandboxConfig.enabled === false)
-    };
+    if (restguardHandler.hasPortlet(portletName)) {
+      const handlerPortlet = restguardHandler.getPortlet(portletName);
+      return {
+        name: "app-restguard-access-token",
+        path: protectedPaths,
+        middleware: handlerPortlet && handlerPortlet.defineAccessTokenMiddleware(),
+        branches: branches,
+        skipped: (portletConfig.enabled === false)
+      };
+    }
   };
 
   this.buildTokenReaderLayer = function(branches) {
-    if (sandboxConfig.accessTokenDetailPath) {
+    if (portletConfig.accessTokenDetailPath) {
       return {
         name: "app-restguard-token-reader",
-        path: sandboxConfig.accessTokenDetailPath,
+        path: portletConfig.accessTokenDetailPath,
         middleware: function(req, res, next) {
-          if (lodash.isObject(req[sandboxConfig.accessTokenObjectName])) {
-            res.json(req[sandboxConfig.accessTokenObjectName]);
+          if (lodash.isObject(req[portletConfig.accessTokenObjectName])) {
+            res.json(req[portletConfig.accessTokenObjectName]);
           } else {
             res.status(404).send();
           }
         },
         branches: branches,
-        skipped: (sandboxConfig.enabled === false)
+        skipped: (portletConfig.enabled === false)
       };
     }
   };
 
   this.buildPermCheckerLayer = function(branches) {
-    return {
-      name: "app-restguard-authorization",
-      middleware: restguardHandler.definePermCheckerMiddleware(),
-      branches: branches,
-      skipped: (sandboxConfig.enabled === false)
-    };
+    if (restguardHandler.hasPortlet(portletName)) {
+      const handlerPortlet = restguardHandler.getPortlet(portletName);
+      return {
+        name: "app-restguard-authorization",
+        middleware: handlerPortlet && handlerPortlet.definePermCheckerMiddleware(),
+        branches: branches,
+        skipped: (portletConfig.enabled === false)
+      };
+    }
   };
 
   let childRack = null;
-  if (sandboxConfig.autowired !== false) {
+  if (portletConfig.autowired !== false && webweaverService.hasPortlet(portletName)) {
     childRack = childRack || {
       name: "app-restguard-branches",
       middleware: express.Router()
     };
+    //
     const layers = [];
     // public resource layer
     const publicLayer = this.buildAllowPublicLayer();
@@ -91,7 +141,10 @@ function Service (params = {}) {
       layers.push(publicLayer);
     }
     // access-token checker
-    layers.push(this.buildAccessTokenLayer());
+    const accessTokenLayer = this.buildAccessTokenLayer();
+    if (accessTokenLayer) {
+      layers.push(accessTokenLayer);
+    }
     // get the details of access-token
     const detailLayer = this.buildTokenReaderLayer();
     if (detailLayer) {
@@ -99,18 +152,20 @@ function Service (params = {}) {
     }
     // permissions checker
     layers.push(this.buildPermCheckerLayer(), childRack);
-    webweaverService.push(layers, sandboxConfig.priority);
+    //
+    webweaverService.getPortlet(portletName).push(layers, portletConfig.priority);
   }
 
   this.push = function(layerOrBranches) {
-    if (childRack) {
+    if (childRack && webweaverService.hasPortlet(portletName)) {
       L.has("silly") && L.log("silly", " - push layer(s) to %s", childRack.name);
-      webweaverService.wire(childRack.middleware, layerOrBranches, childRack.trails);
+      webweaverService.getPortlet(portletName).wire(childRack.middleware, layerOrBranches, childRack.trails);
     }
   };
 }
 
 Service.referenceHash = {
+  configPortletifier: "portletifier",
   restguardHandler: "handler",
   webweaverService: "app-webweaver/webweaverService"
 };

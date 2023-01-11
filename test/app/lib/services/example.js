@@ -42,7 +42,7 @@ function Example(params) {
 
 Example.referenceHash = {
   restguardService: 'app-restguard/service',
-  webweaverService: 'webweaverService'
+  webweaverService: 'app-webweaver/webweaverService'
 };
 
 module.exports = Example;

@@ -5,16 +5,48 @@ const chores = Devebot.require("chores");
 const lodash = Devebot.require("lodash");
 const { momentHelper, tokenHandler } = require("tokenlib");
 
+const { PortletMixiner } = require("app-webserver").require("portlet");
+
 function Service (params = {}) {
-  const { packageName, sandboxConfig, loggingFactory } = params;
+  const { packageName, loggingFactory, configPortletifier, webweaverService } = params;
 
   const blockRef = chores.getBlockRef(__filename, packageName);
   const L = loggingFactory.getLogger();
   const T = loggingFactory.getTracer();
 
-  const expiresInFieldName = sandboxConfig.expiresInFieldName || "expiredIn";
+  const pluginConfig = configPortletifier.getPluginConfig();
 
-  const config = lodash.pick(sandboxConfig, ["secretKey", "expiresIn", "ignoreExpiration"]);
+  PortletMixiner.call(this, {
+    pluginConfig,
+    portletForwarder: webweaverService,
+    portletArguments: { L, T, blockRef },
+    PortletConstructor: Portlet,
+  });
+
+  // @deprecated
+  this.encode = function(data, opts) {
+    return this.hasPortlet() && this.getPortlet().encode(data, opts) || undefined;
+  }
+
+  // @deprecated
+  this.decode = function(token, opts) {
+    return this.hasPortlet() && this.getPortlet().decode(token, opts) || undefined;
+  }
+
+  // @deprecated
+  this.verify = function(token, opts) {
+    return this.hasPortlet() && this.getPortlet().verify(token, opts) || undefined;
+  }
+}
+
+Object.assign(Service.prototype, PortletMixiner.prototype);
+
+function Portlet (params = {}) {
+  const { L, T, blockRef, portletConfig } = params;
+
+  const expiresInFieldName = portletConfig.expiresInFieldName || "expiredIn";
+
+  const config = lodash.pick(portletConfig, ["secretKey", "expiresIn", "ignoreExpiration"]);
   config.secretKey = config.secretKey || "t0ps3cr3t";
   config.expiresIn = config.expiresIn || 60 * 60; // expires in 1 hour
 
@@ -55,6 +87,9 @@ function Service (params = {}) {
   };
 }
 
-Service.referenceHash = {};
+Service.referenceHash = {
+  configPortletifier: "portletifier",
+  webweaverService: "app-webweaver/webweaverService",
+};
 
 module.exports = Service;
