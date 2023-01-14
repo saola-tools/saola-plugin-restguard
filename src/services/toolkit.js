@@ -3,23 +3,21 @@
 const Devebot = require("devebot");
 const chores = Devebot.require("chores");
 const lodash = Devebot.require("lodash");
+
 const { momentHelper, tokenHandler } = require("tokenlib");
 
-const { PortletMixiner } = require("app-webserver").require("portlet");
+const portlet = require("app-webserver").require("portlet");
+const { PORTLETS_COLLECTION_NAME, PortletMixiner } = portlet;
 
 function Service (params = {}) {
   const { packageName, loggingFactory, configPortletifier, webweaverService } = params;
 
-  const blockRef = chores.getBlockRef(__filename, packageName);
-  const L = loggingFactory.getLogger();
-  const T = loggingFactory.getTracer();
-
   const pluginConfig = configPortletifier.getPluginConfig();
 
   PortletMixiner.call(this, {
-    pluginConfig,
-    portletForwarder: webweaverService,
-    portletArguments: { L, T, blockRef },
+    portletDescriptors: lodash.get(pluginConfig, PORTLETS_COLLECTION_NAME),
+    portletReferenceHolders: { webweaverService },
+    portletArguments: { packageName, loggingFactory },
     PortletConstructor: Portlet,
   });
 
@@ -42,7 +40,11 @@ function Service (params = {}) {
 Object.assign(Service.prototype, PortletMixiner.prototype);
 
 function Portlet (params = {}) {
-  const { L, T, blockRef, portletConfig } = params;
+  const { packageName, loggingFactory, portletConfig, portletName } = params;
+
+  const L = loggingFactory.getLogger();
+  const T = loggingFactory.getTracer();
+  const blockRef = chores.getBlockRef(__filename, packageName);
 
   const expiresInFieldName = portletConfig.expiresInFieldName || "expiredIn";
 
@@ -50,9 +52,9 @@ function Portlet (params = {}) {
   config.secretKey = config.secretKey || "t0ps3cr3t";
   config.expiresIn = config.expiresIn || 60 * 60; // expires in 1 hour
 
-  L.has("silly") && L.log("silly", T.add({ blockRef }).toMessage({
+  L && L.has("silly") && L.log("silly", T && T.add({ blockRef, portletName }).toMessage({
     tags: [ blockRef, "constructor" ],
-    text: " - toolkit[${blockRef}] is loading"
+    text: " - Portlet[${blockRef}][${portletName}] is loading"
   }));
 
   this.encode = function(data, opts) {

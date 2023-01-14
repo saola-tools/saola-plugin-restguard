@@ -1,22 +1,21 @@
 "use strict";
 
 const Devebot = require("devebot");
+const chores = Devebot.require("chores");
 const lodash = Devebot.require("lodash");
 
-const { PortletMixiner } = require("app-webserver").require("portlet");
+const portlet = require("app-webserver").require("portlet");
+const { PORTLETS_COLLECTION_NAME, PortletMixiner } = portlet;
 
 function Checker (params) {
-  const { configPortletifier, loggingFactory, restfetchResolver, webweaverService } = params || {};
-
-  const L = loggingFactory.getLogger();
-  const T = loggingFactory.getTracer();
+  const { configPortletifier, packageName, loggingFactory, restfetchResolver, webweaverService } = params || {};
 
   const pluginConfig = configPortletifier.getPluginConfig();
 
   PortletMixiner.call(this, {
-    pluginConfig,
-    portletForwarder: webweaverService,
-    portletArguments: { L, T, restfetchResolver },
+    portletDescriptors: lodash.get(pluginConfig, PORTLETS_COLLECTION_NAME),
+    portletReferenceHolders: { webweaverService },
+    portletArguments: { packageName, loggingFactory, restfetchResolver },
     PortletConstructor: Portlet,
   });
 
@@ -28,9 +27,23 @@ function Checker (params) {
 
 Object.assign(Checker.prototype, PortletMixiner.prototype);
 
+Checker.referenceHash = {
+  configPortletifier: "portletifier",
+  restfetchResolver: "app-restfetch/resolver",
+  webweaverService: "app-webweaver/webweaverService"
+};
+
 function Portlet (params) {
-  const { portletConfig } = params;
-  const { L, T, restfetchResolver } = params;
+  const { packageName, loggingFactory, portletConfig, portletName, restfetchResolver } = params;
+
+  const L = loggingFactory.getLogger();
+  const T = loggingFactory.getTracer();
+  const blockRef = chores.getBlockRef(__filename, packageName);
+
+  L && L.has("silly") && L.log("silly", T && T.add({ portletName }).toMessage({
+    tags: [ blockRef ],
+    text: "The Portlet[${portletName}] is available"
+  }));
 
   let handshake = restfetchResolver.lookupService("handshake/handshake");
 
@@ -115,11 +128,5 @@ function Portlet (params) {
     });
   };
 }
-
-Checker.referenceHash = {
-  configPortletifier: "portletifier",
-  restfetchResolver: "app-restfetch/resolver",
-  webweaverService: "app-webweaver/webweaverService"
-};
 
 module.exports = Checker;

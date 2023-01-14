@@ -2,12 +2,14 @@
 
 const Devebot = require("devebot");
 const Promise = Devebot.require("bluebird");
+const chores = Devebot.require("chores");
 const lodash = Devebot.require("lodash");
 const { tokenHandler } = require("tokenlib");
 
-const { PortletMixiner } = require("app-webserver").require("portlet");
+const portlet = require("app-webserver").require("portlet");
+const { PORTLETS_COLLECTION_NAME, PortletMixiner } = portlet;
 
-const chores = require("../utils/chores");
+const nodash = require("../utils/chores");
 
 const JWT_TokenExpiredError = "TokenExpiredError";
 const JWT_JsonWebTokenError = "JsonWebTokenError";
@@ -19,18 +21,15 @@ const REG_JwtUnknownError = "JwtVerifyUnknownError";
 const REG_InsufficientError = "InsufficientError";
 
 function Handler (params = {}) {
-  const { configPortletifier, loggingFactory, packageName } = params;
-  const { errorManager, permissionChecker, tracelogService, webweaverService } = params;
-
-  const L = loggingFactory.getLogger();
-  const T = loggingFactory.getTracer();
+  const { configPortletifier, packageName, loggingFactory } = params;
+  const { errorManager, permissionChecker, tracelogService } = params;
 
   const pluginConfig = configPortletifier.getPluginConfig();
 
   PortletMixiner.call(this, {
-    pluginConfig,
-    portletForwarder: webweaverService,
-    portletArguments: { L, T, packageName, errorManager, permissionChecker, tracelogService },
+    portletDescriptors: lodash.get(pluginConfig, PORTLETS_COLLECTION_NAME),
+    portletReferenceHolders: { tracelogService },
+    portletArguments: { packageName, loggingFactory, errorManager, permissionChecker },
     PortletConstructor: Portlet,
   });
 
@@ -50,11 +49,20 @@ function Handler (params = {}) {
 Object.assign(Handler.prototype, PortletMixiner.prototype);
 
 function Portlet (params = {}) {
-  const { portletConfig } = params;
-  const { L, T, packageName, errorManager, permissionChecker, tracelogService } = params;
+  const { packageName, loggingFactory, portletConfig, portletName } = params;
+  const { errorManager, permissionChecker, tracelogService } = params;
+
+  const L = loggingFactory.getLogger();
+  const T = loggingFactory.getTracer();
+  const blockRef = chores.getBlockRef(__filename, packageName);
+
+  L && L.has("silly") && L.log("silly", T && T.add({ portletName }).toMessage({
+    tags: [ blockRef ],
+    text: "The Portlet[${portletName}] is available"
+  }));
 
   const bypassingRules = extractBypassingRules(portletConfig);
-  L.has("silly") && L.log("silly", T.add({ bypassingRules }).toMessage({
+  L && L.has("silly") && L.log("silly", T && T.add({ bypassingRules }).toMessage({
     tmpl: "The bypassingRules: ${bypassingRules}"
   }));
 
@@ -66,7 +74,7 @@ function Portlet (params = {}) {
   if (lodash.isString(portletConfig.secretKey)) {
     secretKeys.push(portletConfig.secretKey);
   }
-  const sandboxConfig_deprecatedKeys = chores.stringToArray(portletConfig.deprecatedKeys);
+  const sandboxConfig_deprecatedKeys = nodash.stringToArray(portletConfig.deprecatedKeys);
   if (lodash.isArray(sandboxConfig_deprecatedKeys)) {
     for (const deprecatedKey of sandboxConfig_deprecatedKeys) {
       if (deprecatedKey !== portletConfig.secretKey) {
@@ -136,10 +144,7 @@ Handler.referenceHash = {
   permissionChecker: "checker",
   errorManager: "app-errorlist/manager",
   tracelogService: "app-tracelog/tracelogService",
-  webweaverService: "app-webweaver/webweaverService",
 };
-
-module.exports = Handler;
 
 function extractLangCode (req) {
   return req.get("X-Lang-Code") || req.get("X-Language-Code") || req.get("X-Language");
@@ -332,3 +337,5 @@ function verifyAccessToken (req, serviceContext) {
     };
   }
 }
+
+module.exports = Handler;

@@ -7,6 +7,14 @@ const servicesLocation = { libraryDir: "../lib" };
 
 describe("toolkit", function() {
   const loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
+  const webweaverService = {
+    hasPortlet: function(portletName) {
+      return true;
+    },
+    getPortlet: function(portletName) {
+      return {};
+    }
+  }
 
   const Portletifier = mockit.acquire("portletifier", servicesLocation);
 
@@ -45,7 +53,7 @@ describe("toolkit", function() {
 
       it("return ok when a valid jwt token provided", function () {
         const configPortletifier = new Portletifier({ sandboxConfig });
-        toolkit = new Toolkit({ configPortletifier, loggingFactory });
+        toolkit = new Toolkit({ configPortletifier, loggingFactory, webweaverService });
         const result = toolkit.verify(tc.token);
         assert.isObject(result);
         assert.deepInclude(result, tc.data);
@@ -55,7 +63,7 @@ describe("toolkit", function() {
         const configPortletifier = new Portletifier({
           sandboxConfig: Object.assign({}, sandboxConfig, { secretKey: "invalid" })
         });
-        toolkit = new Toolkit({ configPortletifier, loggingFactory });
+        toolkit = new Toolkit({ configPortletifier, loggingFactory, webweaverService });
         const result = toolkit.verify(tc.token, { secretKey: sandboxConfig.secretKey });
         assert.isObject(result);
         assert.deepInclude(result, tc.data);
@@ -63,7 +71,7 @@ describe("toolkit", function() {
 
       it("use the secretKey from the options first (failed)", function () {
         const configPortletifier = new Portletifier({ sandboxConfig });
-        toolkit = new Toolkit({ configPortletifier, loggingFactory });
+        toolkit = new Toolkit({ configPortletifier, loggingFactory, webweaverService });
         assert.throws(function() {
           toolkit.verify(tc.token, { secretKey: "invalid" });
         }, Error, "invalid signature");
@@ -82,7 +90,7 @@ describe("toolkit", function() {
 
       it("expiration error occured", function () {
         const configPortletifier = new Portletifier({ sandboxConfig });
-        toolkit = new Toolkit({ configPortletifier, loggingFactory });
+        toolkit = new Toolkit({ configPortletifier, loggingFactory, webweaverService });
         assert.throws(function() {
           toolkit.verify(tc.token);
         }, Error, "jwt expired");
@@ -90,7 +98,7 @@ describe("toolkit", function() {
 
       it("ignoreExpiration affected (from options)", function () {
         const configPortletifier = new Portletifier({ sandboxConfig });
-        toolkit = new Toolkit({ configPortletifier, loggingFactory });
+        toolkit = new Toolkit({ configPortletifier, loggingFactory, webweaverService });
         const result = toolkit.verify(tc.token, { ignoreExpiration: true });
         assert.isObject(result);
         assert.deepInclude(result, tc.data);
@@ -100,7 +108,7 @@ describe("toolkit", function() {
         const configPortletifier = new Portletifier({
           sandboxConfig: Object.assign({}, sandboxConfig, { ignoreExpiration: true })
         });
-        toolkit = new Toolkit({ configPortletifier, loggingFactory });
+        toolkit = new Toolkit({ configPortletifier, loggingFactory, webweaverService });
         const result = toolkit.verify(tc.token);
         assert.isObject(result);
         assert.deepInclude(result, tc.data);

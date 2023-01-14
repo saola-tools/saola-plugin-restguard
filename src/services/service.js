@@ -1,23 +1,24 @@
 "use strict";
 
 const Devebot = require("devebot");
+const chores = Devebot.require("chores");
 const lodash = Devebot.require("lodash");
 
-const { PortletMixiner } = require("app-webserver").require("portlet");
+const portlet = require("app-webserver").require("portlet");
+const { PORTLETS_COLLECTION_NAME, PortletMixiner } = portlet;
 
 function Service (params = {}) {
-  const { configPortletifier, loggingFactory } = params;
+  const { configPortletifier, packageName, loggingFactory } = params;
   const { restguardHandler, webweaverService } = params;
 
-  const L = loggingFactory.getLogger();
-  const T = loggingFactory.getTracer();
+  const express = webweaverService.express;
 
   const pluginConfig = configPortletifier.getPluginConfig();
 
   PortletMixiner.call(this, {
-    pluginConfig,
-    portletForwarder: webweaverService,
-    portletArguments: { L, T, restguardHandler, webweaverService },
+    portletDescriptors: lodash.get(pluginConfig, PORTLETS_COLLECTION_NAME),
+    portletReferenceHolders: { restguardHandler, webweaverService },
+    portletArguments: { packageName, loggingFactory, express },
     PortletConstructor: Portlet,
   });
 
@@ -50,8 +51,16 @@ function Service (params = {}) {
 Object.assign(Service.prototype, PortletMixiner.prototype);
 
 function Portlet (params = {}) {
-  const { L, T, portletName, portletConfig, restguardHandler, webweaverService } = params;
-  const express = webweaverService.express;
+  const { packageName, loggingFactory, portletName, portletConfig, restguardHandler, webweaverService, express } = params;
+
+  const L = loggingFactory.getLogger();
+  const T = loggingFactory.getTracer();
+  const blockRef = chores.getBlockRef(__filename, packageName);
+
+  L && L.has("silly") && L.log("silly", T && T.add({ portletName }).toMessage({
+    tags: [ blockRef ],
+    text: "The Portlet[${portletName}] is loading"
+  }));
 
   const publicPaths = lodash.get(portletConfig, ["publicPaths"], []);
 
@@ -64,12 +73,12 @@ function Portlet (params = {}) {
 
   this.buildAllowPublicLayer = function(branches) {
     if (lodash.isEmpty(publicPaths)) {
-      L.has("silly") && L.log("silly", T.add({ publicPaths }).toMessage({
+      L && L.has("silly") && L.log("silly", T && T.add({ publicPaths }).toMessage({
         tmpl: "publicPaths ${publicPaths} is empty, skipped"
       }));
       return null;
     }
-    L.has("silly") && L.log("silly", T.add({ publicPaths }).toMessage({
+    L && L.has("silly") && L.log("silly", T && T.add({ publicPaths }).toMessage({
       tmpl: "publicPaths ${publicPaths} is applied"
     }));
     return {
@@ -85,16 +94,13 @@ function Portlet (params = {}) {
   };
 
   this.buildAccessTokenLayer = function(branches) {
-    if (restguardHandler.hasPortlet(portletName)) {
-      const handlerPortlet = restguardHandler.getPortlet(portletName);
-      return {
-        name: "app-restguard-access-token",
-        path: protectedPaths,
-        middleware: handlerPortlet && handlerPortlet.defineAccessTokenMiddleware(),
-        branches: branches,
-        skipped: (portletConfig.enabled === false)
-      };
-    }
+    return {
+      name: "app-restguard-access-token",
+      path: protectedPaths,
+      middleware: restguardHandler.defineAccessTokenMiddleware(),
+      branches: branches,
+      skipped: (portletConfig.enabled === false)
+    };
   };
 
   this.buildTokenReaderLayer = function(branches) {
@@ -116,19 +122,16 @@ function Portlet (params = {}) {
   };
 
   this.buildPermCheckerLayer = function(branches) {
-    if (restguardHandler.hasPortlet(portletName)) {
-      const handlerPortlet = restguardHandler.getPortlet(portletName);
-      return {
-        name: "app-restguard-authorization",
-        middleware: handlerPortlet && handlerPortlet.definePermCheckerMiddleware(),
-        branches: branches,
-        skipped: (portletConfig.enabled === false)
-      };
-    }
+    return {
+      name: "app-restguard-authorization",
+      middleware: restguardHandler.definePermCheckerMiddleware(),
+      branches: branches,
+      skipped: (portletConfig.enabled === false)
+    };
   };
 
   let childRack = null;
-  if (portletConfig.autowired !== false && webweaverService.hasPortlet(portletName)) {
+  if (portletConfig.autowired !== false) {
     childRack = childRack || {
       name: "app-restguard-branches",
       middleware: express.Router()
@@ -153,13 +156,13 @@ function Portlet (params = {}) {
     // permissions checker
     layers.push(this.buildPermCheckerLayer(), childRack);
     //
-    webweaverService.getPortlet(portletName).push(layers, portletConfig.priority);
+    webweaverService.push(layers, portletConfig.priority);
   }
 
   this.push = function(layerOrBranches) {
-    if (childRack && webweaverService.hasPortlet(portletName)) {
+    if (childRack) {
       L.has("silly") && L.log("silly", " - push layer(s) to %s", childRack.name);
-      webweaverService.getPortlet(portletName).wire(childRack.middleware, layerOrBranches, childRack.trails);
+      webweaverService.wire(childRack.middleware, layerOrBranches, childRack.trails);
     }
   };
 }
