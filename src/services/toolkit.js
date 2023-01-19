@@ -6,16 +6,14 @@ const lodash = Devebot.require("lodash");
 
 const { momentHelper, tokenHandler } = require("tokenlib");
 
-const portlet = require("app-webserver").require("portlet");
-const { PORTLETS_COLLECTION_NAME, PortletMixiner } = portlet;
+const { PortletMixiner } = require("app-webserver").require("portlet");
 
 function Service (params = {}) {
   const { packageName, loggingFactory, configPortletifier, webweaverService } = params;
 
-  const pluginConfig = configPortletifier.getPluginConfig();
-
   PortletMixiner.call(this, {
-    portletDescriptors: lodash.get(pluginConfig, PORTLETS_COLLECTION_NAME),
+    portletBaseConfig: configPortletifier.getPortletBaseConfig(),
+    portletDescriptors: configPortletifier.getPortletDescriptors(),
     portletReferenceHolders: { webweaverService },
     portletArguments: { packageName, loggingFactory },
     PortletConstructor: Portlet,

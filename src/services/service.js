@@ -4,8 +4,7 @@ const Devebot = require("devebot");
 const chores = Devebot.require("chores");
 const lodash = Devebot.require("lodash");
 
-const portlet = require("app-webserver").require("portlet");
-const { PORTLETS_COLLECTION_NAME, PortletMixiner } = portlet;
+const { PortletMixiner } = require("app-webserver").require("portlet");
 
 function Service (params = {}) {
   const { configPortletifier, packageName, loggingFactory } = params;
@@ -13,10 +12,9 @@ function Service (params = {}) {
 
   const express = webweaverService.express;
 
-  const pluginConfig = configPortletifier.getPluginConfig();
-
   PortletMixiner.call(this, {
-    portletDescriptors: lodash.get(pluginConfig, PORTLETS_COLLECTION_NAME),
+    portletBaseConfig: configPortletifier.getPortletBaseConfig(),
+    portletDescriptors: configPortletifier.getPortletDescriptors(),
     portletReferenceHolders: { restguardHandler, webweaverService },
     portletArguments: { packageName, loggingFactory, express },
     PortletConstructor: Portlet,

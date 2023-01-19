@@ -6,8 +6,7 @@ const chores = Devebot.require("chores");
 const lodash = Devebot.require("lodash");
 const { tokenHandler } = require("tokenlib");
 
-const portlet = require("app-webserver").require("portlet");
-const { PORTLETS_COLLECTION_NAME, PortletMixiner } = portlet;
+const { PortletMixiner } = require("app-webserver").require("portlet");
 
 const nodash = require("../utils/chores");
 
@@ -24,10 +23,9 @@ function Handler (params = {}) {
   const { configPortletifier, packageName, loggingFactory } = params;
   const { errorManager, permissionChecker, tracelogService } = params;
 
-  const pluginConfig = configPortletifier.getPluginConfig();
-
   PortletMixiner.call(this, {
-    portletDescriptors: lodash.get(pluginConfig, PORTLETS_COLLECTION_NAME),
+    portletBaseConfig: configPortletifier.getPortletBaseConfig(),
+    portletDescriptors: configPortletifier.getPortletDescriptors(),
     portletReferenceHolders: { tracelogService },
     portletArguments: { packageName, loggingFactory, errorManager, permissionChecker },
     PortletConstructor: Portlet,

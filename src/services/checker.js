@@ -4,16 +4,14 @@ const Devebot = require("devebot");
 const chores = Devebot.require("chores");
 const lodash = Devebot.require("lodash");
 
-const portlet = require("app-webserver").require("portlet");
-const { PORTLETS_COLLECTION_NAME, PortletMixiner } = portlet;
+const { PortletMixiner } = require("app-webserver").require("portlet");
 
-function Checker (params) {
-  const { configPortletifier, packageName, loggingFactory, restfetchResolver, webweaverService } = params || {};
-
-  const pluginConfig = configPortletifier.getPluginConfig();
+function Checker (params = {}) {
+  const { configPortletifier, packageName, loggingFactory, restfetchResolver, webweaverService } = params;
 
   PortletMixiner.call(this, {
-    portletDescriptors: lodash.get(pluginConfig, PORTLETS_COLLECTION_NAME),
+    portletBaseConfig: configPortletifier.getPortletBaseConfig(),
+    portletDescriptors: configPortletifier.getPortletDescriptors(),
     portletReferenceHolders: { webweaverService },
     portletArguments: { packageName, loggingFactory, restfetchResolver },
     PortletConstructor: Portlet,
@@ -33,16 +31,16 @@ Checker.referenceHash = {
   webweaverService: "app-webweaver/webweaverService"
 };
 
-function Portlet (params) {
+function Portlet (params = {}) {
   const { packageName, loggingFactory, portletConfig, portletName, restfetchResolver } = params;
 
   const L = loggingFactory.getLogger();
   const T = loggingFactory.getTracer();
   const blockRef = chores.getBlockRef(__filename, packageName);
 
-  L && L.has("silly") && L.log("silly", T && T.add({ portletName }).toMessage({
+  L && L.has("silly") && L.log("silly", T && T.add({ blockRef, portletName }).toMessage({
     tags: [ blockRef ],
-    text: "The Portlet[${portletName}] is available"
+    text: "The Portlet[${blockRef}][${portletName}] is loading"
   }));
 
   let handshake = restfetchResolver.lookupService("handshake/handshake");
