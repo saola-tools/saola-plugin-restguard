@@ -1,0 +1,5 @@
+name: app-restguard
+title: "Devebot Plugin: Restguard"
+version: master
+nav:
+- modules/ROOT/nav.adoc

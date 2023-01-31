@@ -1,0 +1,8 @@
+= Tổng quan
+
+*Restguard* là một thành phần cắm thêm (plugin) của Devebot Platform.
+Mục đích của *Restguard* là chắn các lời gọi Rest API (từ bên ngoài vào Webserver, trong hệ sinh thái Devebot, thường là Restfront), sau đó kiểm tra xem các lời gọi Rest API này có được xác thực hay không.
+Nếu đã xác thực hợp lệ, Restguard sẽ "thả" cho lời gọi thực hiện tiếp. Ngược lại, Restguard sẽ trả lại lỗi dưới dạng mã lỗi của HTTP Status.
+
+////
+////
