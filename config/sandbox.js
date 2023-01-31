@@ -1,7 +1,7 @@
 const path = require("path");
 module.exports = {
   plugins: {
-    appRestguard: {
+    pluginRestguard: {
       enabled: true,
       accessTokenObjectName: "accessToken",
       accessTokenHeaderName: "x-access-token",
@@ -37,7 +37,7 @@ module.exports = {
         },
       }
     },
-    appRestfetch: {
+    pluginRestfetch: {
       mappingStore: {
         "handshake": path.join(__dirname, "../lib/mappings/restfetch/")
       }

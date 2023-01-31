@@ -1,6 +1,6 @@
 "use strict";
 
-const Devebot = require("devebot");
+const Devebot = require("@saola/core");
 const lodash = Devebot.require("lodash");
 
 function Example (params) {
@@ -35,7 +35,7 @@ function Example (params) {
     res.json({ status: 200, message: "public" });
   });
   layers.push({
-    name: "app-restguard-example-jwt",
+    name: "saola-plugin-restguard-example-jwt",
     path: contextPath + "/jwt",
     middleware: router_jwt
   });
@@ -43,8 +43,8 @@ function Example (params) {
 }
 
 Example.referenceHash = {
-  restguardService: "app-restguard/service",
-  webweaverService: "app-webweaver/webweaverService"
+  restguardService: "@saola/plugin-restguard/service",
+  webweaverService: "@saola/plugin-webweaver/webweaverService"
 };
 
 module.exports = Example;

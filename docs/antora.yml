@@ -1,5 +1,5 @@
-name: app-restguard
-title: "Devebot Plugin: Restguard"
+name: saola-plugin-restguard
+title: "Saola Plugin: Restguard"
 version: master
 nav:
 - modules/ROOT/nav.adoc

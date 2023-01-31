@@ -1,12 +1,12 @@
 "use strict";
 
-const Devebot = require("devebot");
+const Devebot = require("@saola/core");
 const chores = Devebot.require("chores");
 const lodash = Devebot.require("lodash");
 
 const { momentHelper, tokenHandler } = require("tokenlib");
 
-const { PortletMixiner } = require("app-webserver").require("portlet");
+const { PortletMixiner } = require("@saola/plugin-webserver").require("portlet");
 
 function Service (params = {}) {
   const { packageName, loggingFactory, configPortletifier, webweaverService } = params;
@@ -22,17 +22,17 @@ function Service (params = {}) {
   // @deprecated
   this.encode = function(data, opts) {
     return this.hasPortlet() && this.getPortlet().encode(data, opts) || undefined;
-  }
+  };
 
   // @deprecated
   this.decode = function(token, opts) {
     return this.hasPortlet() && this.getPortlet().decode(token, opts) || undefined;
-  }
+  };
 
   // @deprecated
   this.verify = function(token, opts) {
     return this.hasPortlet() && this.getPortlet().verify(token, opts) || undefined;
-  }
+  };
 }
 
 Object.assign(Service.prototype, PortletMixiner.prototype);
@@ -89,7 +89,7 @@ function Portlet (params = {}) {
 
 Service.referenceHash = {
   configPortletifier: "portletifier",
-  webweaverService: "app-webweaver/webweaverService",
+  webweaverService: "@saola/plugin-webweaver/webweaverService",
 };
 
 module.exports = Service;

@@ -1,10 +1,10 @@
 "use strict";
 
-const Devebot = require("devebot");
+const Devebot = require("@saola/core");
 const chores = Devebot.require("chores");
 const lodash = Devebot.require("lodash");
 
-const { PortletMixiner } = require("app-webserver").require("portlet");
+const { PortletMixiner } = require("@saola/plugin-webserver").require("portlet");
 
 function Service (params = {}) {
   const { configPortletifier, packageName, loggingFactory } = params;
@@ -23,27 +23,27 @@ function Service (params = {}) {
   // @deprecated
   this.buildAllowPublicLayer = function(branches) {
     return this.hasPortlet() && this.getPortlet().buildAllowPublicLayer(branches) || undefined;
-  }
+  };
 
   // @deprecated
   this.buildAccessTokenLayer = function(branches) {
     return this.hasPortlet() && this.getPortlet().buildAccessTokenLayer(branches) || undefined;
-  }
+  };
 
   // @deprecated
   this.buildTokenReaderLayer = function(branches) {
     return this.hasPortlet() && this.getPortlet().buildTokenReaderLayer(branches) || undefined;
-  }
+  };
 
   // @deprecated
   this.buildPermCheckerLayer = function(branches) {
     return this.hasPortlet() && this.getPortlet().buildPermCheckerLayer(branches) || undefined;
-  }
+  };
 
   // @deprecated
   this.push = function(layerOrBranches) {
     return this.hasPortlet() && this.getPortlet().push(layerOrBranches) || undefined;
-  }
+  };
 }
 
 Object.assign(Service.prototype, PortletMixiner.prototype);
@@ -80,7 +80,7 @@ function Portlet (params = {}) {
       tmpl: "publicPaths ${publicPaths} is applied"
     }));
     return {
-      name: "app-restguard-allow-public",
+      name: "saola-plugin-restguard-allow-public",
       path: publicPaths,
       middleware: function (req, res, next) {
         req[portletConfig.allowPublicAccessName] = true;
@@ -93,7 +93,7 @@ function Portlet (params = {}) {
 
   this.buildAccessTokenLayer = function(branches) {
     return {
-      name: "app-restguard-access-token",
+      name: "saola-plugin-restguard-access-token",
       path: protectedPaths,
       middleware: restguardHandler.defineAccessTokenMiddleware(),
       branches: branches,
@@ -104,7 +104,7 @@ function Portlet (params = {}) {
   this.buildTokenReaderLayer = function(branches) {
     if (portletConfig.accessTokenDetailPath) {
       return {
-        name: "app-restguard-token-reader",
+        name: "saola-plugin-restguard-token-reader",
         path: portletConfig.accessTokenDetailPath,
         middleware: function(req, res, next) {
           if (lodash.isObject(req[portletConfig.accessTokenObjectName])) {
@@ -121,7 +121,7 @@ function Portlet (params = {}) {
 
   this.buildPermCheckerLayer = function(branches) {
     return {
-      name: "app-restguard-authorization",
+      name: "saola-plugin-restguard-authorization",
       middleware: restguardHandler.definePermCheckerMiddleware(),
       branches: branches,
       skipped: (portletConfig.enabled === false)
@@ -131,7 +131,7 @@ function Portlet (params = {}) {
   let childRack = null;
   if (portletConfig.autowired !== false) {
     childRack = childRack || {
-      name: "app-restguard-branches",
+      name: "saola-plugin-restguard-branches",
       middleware: express.Router()
     };
     //
@@ -168,7 +168,7 @@ function Portlet (params = {}) {
 Service.referenceHash = {
   configPortletifier: "portletifier",
   restguardHandler: "handler",
-  webweaverService: "app-webweaver/webweaverService"
+  webweaverService: "@saola/plugin-webweaver/webweaverService"
 };
 
 module.exports = Service;

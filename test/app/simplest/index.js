@@ -2,10 +2,10 @@
 
 const path = require("path");
 
-const app = require("devebot").launchApplication({
+const app = require("@saola/core").launchApplication({
   appRootPath: __dirname
 }, [{
-  name: "app-restguard",
+  name: "@saola/plugin-restguard",
   path: path.join(__dirname, "../../../", "index.js")
 }]);
 

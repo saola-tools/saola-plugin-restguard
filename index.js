@@ -1,10 +1,10 @@
 "use strict";
 
-const plugin = require("devebot").registerLayerware(__dirname, [
-  "app-errorlist",
-  "app-tracelog",
-  "app-webweaver",
-  "app-restfetch"
+const plugin = require("@saola/core").registerLayerware(__dirname, [
+  "@saola/plugin-errorlist",
+  "@saola/plugin-logtracer",
+  "@saola/plugin-webweaver",
+  "@saola/plugin-restfetch"
 ], []);
 
 const moduleMapping = {

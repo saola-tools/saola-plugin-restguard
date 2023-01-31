@@ -1,10 +1,10 @@
 "use strict";
 
-const Devebot = require("devebot");
+const Devebot = require("@saola/core");
 const chores = Devebot.require("chores");
 const lodash = Devebot.require("lodash");
 
-const { PortletMixiner } = require("app-webserver").require("portlet");
+const { PortletMixiner } = require("@saola/plugin-webserver").require("portlet");
 
 function Checker (params = {}) {
   const { configPortletifier, packageName, loggingFactory, restfetchResolver, webweaverService } = params;
@@ -27,8 +27,8 @@ Object.assign(Checker.prototype, PortletMixiner.prototype);
 
 Checker.referenceHash = {
   configPortletifier: "portletifier",
-  restfetchResolver: "app-restfetch/resolver",
-  webweaverService: "app-webweaver/webweaverService"
+  restfetchResolver: "@saola/plugin-restfetch/resolver",
+  webweaverService: "@saola/plugin-webweaver/webweaverService"
 };
 
 function Portlet (params = {}) {

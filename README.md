@@ -1,3 +1,3 @@
-# app-restguard
+# @saola/plugin-restguard
 
-> Devebot application restguard layerware
+> Saola Restful API guard plugin

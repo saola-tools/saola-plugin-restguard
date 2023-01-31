@@ -1,14 +1,14 @@
-# app-restguard test/app
+# @saola/plugin-restguard test/app
 
-> Devebot access-token authentication layerware
+> Saola access-token authentication layerware
 
 ## Usage
 
 ### Run the server for testing
 
 ```shell
+export DEBUG=saola*,app*
 export LOGOLITE_DEBUGLOG_ENABLED=true
-export DEBUG=devebot*,app*
 npm run clean
 npm run build && node test/app
 ```

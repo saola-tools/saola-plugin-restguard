@@ -1,9 +1,9 @@
 "use strict";
 
 const path = require("path");
-const devebot = require("devebot");
-const Promise = devebot.require("bluebird");
-const lodash = devebot.require("lodash");
+const Devebot = require("@saola/core");
+const Promise = Devebot.require("bluebird");
+const lodash = Devebot.require("lodash");
 const { jsonwebtoken: jwt } = require("tokenlib");
 const { assert, mockit } = require("liberica");
 
@@ -12,7 +12,7 @@ describe("handler", function() {
   const ctx = {
     L: loggingFactory.getLogger(),
     T: loggingFactory.getTracer(),
-    blockRef: "app-restguard/handler",
+    blockRef: "@saola/plugin-restguard/handler",
   };
 
   describe("extractBypassingRules()", function() {
@@ -160,13 +160,13 @@ describe("handler", function() {
     });
   });
 
-  const app = require(path.join(__dirname, "../../app"));
-  const portletConfig = lodash.get(app.config, ["sandbox", "default", "plugins", "appRestguard"]);
+  const app = require(path.join(__dirname, "../app/simplest"));
+  const portletConfig = lodash.get(app.config, ["sandbox", "default", "plugins", "pluginRestguard"]);
   false && console.log(JSON.stringify(portletConfig, null, 2));
 
-  const tracelogService = app.runner.getSandboxService("app-tracelog/tracelogService");
-  const errorManager = app.runner.getSandboxService("app-errorlist/manager");
-  const errorBuilder = errorManager.register("app-restguard", portletConfig);
+  const tracelogService = app.runner.getSandboxService("@saola/plugin-logtracer/tracelogService");
+  const errorManager = app.runner.getSandboxService("@saola/plugin-errorlist/manager");
+  const errorBuilder = errorManager.register("@saola/plugin-restguard", portletConfig);
   const secretKeys = [ portletConfig.secretKey ];
 
   describe("verifyAccessToken()", function() {

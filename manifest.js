@@ -6,11 +6,11 @@ module.exports = {
   "config": {
     "validation": {
       "checkConstraints": function (cfg) {
-        const enabled = lodash.get(cfg, ['plugins', 'appRestguard', 'enabled']);
+        const enabled = lodash.get(cfg, ['plugins', 'pluginRestguard', 'enabled']);
         if (!enabled) {
           return true;
         }
-        const secretKey = lodash.get(cfg, ['plugins', 'appRestguard', 'secretKey']);
+        const secretKey = lodash.get(cfg, ['plugins', 'pluginRestguard', 'secretKey']);
         return secretKey !== 'password';
       },
       "schema": {

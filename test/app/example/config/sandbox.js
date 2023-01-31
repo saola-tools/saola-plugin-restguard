@@ -1,6 +1,6 @@
 "use strict";
 
-const Devebot = require("devebot");
+const Devebot = require("@saola/core");
 const lodash = Devebot.require("lodash");
 const chores = require("../../../lib/utils/chores.js");
 const contextPath = "/example";
@@ -12,7 +12,7 @@ module.exports = {
     accessTokenObjectName: accessTokenObjectName
   },
   plugins: {
-    appRestguard: {
+    pluginRestguard: {
       enabled: true,
       accessTokenDetailPath: "/-access-token-",
       accessTokenObjectName: accessTokenObjectName,
@@ -69,10 +69,10 @@ module.exports = {
       tracingPaths: [ contextPath ],
       tracingBoundaryEnabled: true
     },
-    appWebweaver: {
+    pluginWebweaver: {
       printRequestInfo: true
     },
-    appWebserver: {
+    pluginWebserver: {
       port: 7878
     }
   }
