@@ -4,10 +4,12 @@ const path = require("path");
 
 const app = require("@saola/core").launchApplication({
   appRootPath: __dirname
-}, [{
-  name: "@saola/plugin-restguard",
-  path: path.join(__dirname, "../../../", "index.js")
-}]);
+}, [
+  {
+    name: "@saola/plugin-restguard",
+    path: path.join(__dirname, "../../../", "index.js")
+  }
+]);
 
 if (require.main === module) app.server.start();
 

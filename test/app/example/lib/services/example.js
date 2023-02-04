@@ -3,17 +3,13 @@
 const Devebot = require("@saola/core");
 const lodash = Devebot.require("lodash");
 
-function Example (params) {
-  params = params || {};
-
+function Example (params = {}) {
+  const { sandboxConfig, loggingFactory, restguardService, webweaverService } = params;
   const L = params.loggingFactory.getLogger();
   const T = params.loggingFactory.getTracer();
 
-  const restguardService = params.restguardService;
-  const express = params.webweaverService.express;
-
-  const pluginCfg = lodash.get(params, ["sandboxConfig"], {});
-  const contextPath = pluginCfg.contextPath || "/example";
+  const express = webweaverService.express;
+  const contextPath = sandboxConfig.contextPath || "/example";
   const layers = [];
 
   const router_jwt = express.Router();
@@ -24,8 +20,8 @@ function Example (params) {
     res.json({ status: 200, message: "authorized" });
   });
   router_jwt.route("/session-info").get(function(req, res, next) {
-    if (lodash.isObject(req[pluginCfg.accessTokenObjectName])) {
-      res.json(req[pluginCfg.accessTokenObjectName]);
+    if (lodash.isObject(req[sandboxConfig.accessTokenObjectName])) {
+      res.json(req[sandboxConfig.accessTokenObjectName]);
     } else {
       res.status(404).json({});
     }
@@ -34,12 +30,14 @@ function Example (params) {
     L.has("silly") && L.log("silly", " - request /jwt public resources ...");
     res.json({ status: 200, message: "public" });
   });
+  //
   layers.push({
     name: "saola-plugin-restguard-example-jwt",
     path: contextPath + "/jwt",
     middleware: router_jwt
   });
-  restguardService.push(params.webweaverService.getPrintRequestInfoLayer(layers));
+  //
+  restguardService.push(webweaverService.getPrintRequestInfoLayer(layers));
 }
 
 Example.referenceHash = {

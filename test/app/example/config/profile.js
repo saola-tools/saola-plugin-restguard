@@ -1,5 +1,5 @@
 module.exports = {
-  devebot: {
+  framework: {
     coupling: "loose",
     mode: "silent",
   },
@@ -7,7 +7,7 @@ module.exports = {
     transports: {
       console: {
         type: "console",
-        level: "debug",
+        level: "info",
         json: false,
         timestamp: true,
         colorize: true

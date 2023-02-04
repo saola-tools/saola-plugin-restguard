@@ -4,9 +4,8 @@ const Devebot = require("@saola/core");
 const chores = Devebot.require("chores");
 const lodash = Devebot.require("lodash");
 
+const { PortletMixiner } = Devebot.require("portlet");
 const { momentHelper, tokenHandler } = require("tokenlib");
-
-const { PortletMixiner } = require("@saola/plugin-webserver").require("portlet");
 
 function Service (params = {}) {
   const { packageName, loggingFactory, configPortletifier, webweaverService } = params;

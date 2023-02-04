@@ -4,9 +4,9 @@ const Devebot = require("@saola/core");
 const Promise = Devebot.require("bluebird");
 const chores = Devebot.require("chores");
 const lodash = Devebot.require("lodash");
-const { tokenHandler } = require("tokenlib");
 
-const { PortletMixiner } = require("@saola/plugin-webserver").require("portlet");
+const { PortletMixiner } = Devebot.require("portlet");
+const { tokenHandler } = require("tokenlib");
 
 const nodash = require("../utils/chores");
 
