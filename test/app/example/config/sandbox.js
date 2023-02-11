@@ -65,7 +65,7 @@ module.exports = {
         ]
       }
     },
-    appTracelog: {
+    pluginLogtracer: {
       tracingPaths: [ contextPath ],
       tracingBoundaryEnabled: true
     },

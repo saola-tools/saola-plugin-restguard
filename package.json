@@ -1,14 +1,9 @@
 {
   "name": "@saola/plugin-restguard",
   "version": "0.4.1",
-  "description": "Saola Restful API guard",
-  "homepage": "https://github.com/saolajs/saola-plugin-restguard.git",
+  "description": "Saola Restful API Guard plugin",
   "license": "MIT",
-  "author": {
-    "name": "SaolaJS",
-    "email": "contact@saolajs.com",
-    "url": "https://github.com/saolajs"
-  },
+  "author": "Saola Development Team",
   "main": "index.js",
   "files": [
     "bin/",
@@ -30,6 +25,10 @@
     "test": "npm run testOnly",
     "prepublishOnly": "npm run check-silent && npm run clean && NODE_ENV=${SAOLA_NODE_ENV:-production} npm run build",
     "verify": "npm run prepublishOnly && npm run testOnly"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/saola-tools/saola-plugin-restguard.git"
   },
   "engines": {
     "node": ">=12"
