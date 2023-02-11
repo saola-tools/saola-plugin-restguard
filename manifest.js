@@ -1,6 +1,167 @@
 'use strict';
 
+const Devebot = require("@saola/core");
 const lodash = Devebot.require('lodash');
+
+const CONFIG_OBJECT_PROPERTIES = {
+  "enabled": {
+    "type": "boolean"
+  },
+  "accessTokenTransform": {
+  },
+  "accessTokenObjectName": {
+    "type": "string"
+  },
+  "accessTokenHeaderName": {
+    "type": "string"
+  },
+  "accessTokenParamsName": {
+    "type": "string"
+  },
+  "accessTokenDetailPath": {
+    "type": "string"
+  },
+  "allowPublicAccessName": {
+    "type": "string"
+  },
+  "secretKey": {
+    "type": "string"
+  },
+  "deprecatedKeys": {
+    "oneOf": [
+      {
+        "type": "string"
+      },
+      {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    ]
+  },
+  "expiresIn": {
+    "type": "number"
+  },
+  "ignoreExpiration": {
+    "type": "boolean"
+  },
+  "publicPaths": {
+    "type": "array"
+  },
+  "protectedPaths": {
+    "type": "array",
+    "items": {
+      "oneOf": [
+        {
+          "type": "string"
+        }
+      ]
+    }
+  },
+  "bypassingRules": {
+    "enabled": {
+      "type": "boolean"
+    },
+    "exclusion": {
+      "$ref": "#/definitions/bypassingRule",
+      "description": "bypass checking token all of the requests except the one that satisfied this rule",
+    },
+    "inclusion": {
+      "$ref": "#/definitions/bypassingRule",
+      "description": "bypass checking token the request that satisfied this rule",
+    },
+  },
+  "authorization": {
+    "type": "object",
+    "properties": {
+      "enabled": {
+        "type": "boolean"
+      },
+      "permissionLocation": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "permissionExtractor": {
+      },
+      "permissionRules": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "url": {
+              "type": "string"
+            },
+            "paths": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "methods": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "permission": {
+              "type": "string"
+            },
+          }
+        }
+      }
+    }
+  },
+  "errorCodes": {
+    "type": "object",
+    "patternProperties": {
+      "^[a-zA-Z]\\w*$": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "returnCode": {
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "statusCode": {
+            "type": "number"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "additionalProperties": false
+  },
+  "autowired": {
+    "type": "boolean"
+  },
+  "priority": {
+    "type": "number"
+  },
+};
 
 module.exports = {
   "config": {
@@ -15,165 +176,18 @@ module.exports = {
       },
       "schema": {
         "type": "object",
-        "properties": {
-          "enabled": {
-            "type": "boolean"
-          },
-          "accessTokenTransform": {
-          },
-          "accessTokenObjectName": {
-            "type": "string"
-          },
-          "accessTokenHeaderName": {
-            "type": "string"
-          },
-          "accessTokenParamsName": {
-            "type": "string"
-          },
-          "accessTokenDetailPath": {
-            "type": "string"
-          },
-          "allowPublicAccessName": {
-            "type": "string"
-          },
-          "secretKey": {
-            "type": "string"
-          },
-          "deprecatedKeys": {
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              }
-            ]
-          },
-          "expiresIn": {
-            "type": "number"
-          },
-          "ignoreExpiration": {
-            "type": "boolean"
-          },
-          "publicPaths": {
-            "type": "array"
-          },
-          "protectedPaths": {
-            "type": "array",
-            "items": {
-              "oneOf": [
-                {
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "bypassingRules": {
-            "enabled": {
-              "type": "boolean"
-            },
-            "exclusion": {
-              "$ref": "#/definitions/bypassingRule",
-              "description": "bypass checking token all of the requests except the one that satisfied this rule",
-            },
-            "inclusion": {
-              "$ref": "#/definitions/bypassingRule",
-              "description": "bypass checking token the request that satisfied this rule",
-            },
-          },
-          "authorization": {
-            "type": "object",
-            "properties": {
-              "enabled": {
-                "type": "boolean"
-              },
-              "permissionLocation": {
-                "oneOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  }
-                ]
-              },
-              "permissionExtractor": {
-              },
-              "permissionRules": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "enabled": {
-                      "type": "boolean"
-                    },
-                    "url": {
-                      "type": "string"
-                    },
-                    "paths": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    "methods": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    "permission": {
-                      "type": "string"
-                    },
-                  }
-                }
-              }
-            }
-          },
-          "errorCodes": {
+        "properties": Object.assign({
+          "portlets": {
             "type": "object",
             "patternProperties": {
-              "^[a-zA-Z]\\w*$": {
+              "^[a-zA-Z][\\w-]*$": {
                 "type": "object",
-                "properties": {
-                  "message": {
-                    "type": "string"
-                  },
-                  "returnCode": {
-                    "oneOf": [
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "string"
-                      }
-                    ]
-                  },
-                  "statusCode": {
-                    "type": "number"
-                  },
-                  "description": {
-                    "type": "string"
-                  }
-                },
+                "properties": CONFIG_OBJECT_PROPERTIES,
                 "additionalProperties": false
               }
-            },
-            "additionalProperties": false
+            }
           },
-          "autowired": {
-            "type": "boolean"
-          },
-          "priority": {
-            "type": "number"
-          },
-        },
+        }, CONFIG_OBJECT_PROPERTIES),
         "additionalProperties": false,
         "definitions": {
           "bypassingRule": {
